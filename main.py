@@ -1,3 +1,6 @@
+from llama_index.core.indices.vector_store import VectorIndexRetriever
+from llama_index.core.postprocessor import LLMRerank
+from llama_index.core.vector_stores.types import VectorStoreQueryMode
 from llama_index.llms.openai import OpenAI as LlamaOpenAI
 from llama_index.embeddings.openai import OpenAIEmbedding
 from llama_index.core.service_context import ServiceContext
@@ -38,7 +41,13 @@ class ChatMemory:
 
 
 class ChatEngine:
-    def __init__(self, index: VectorStoreIndex, prompt_path: str, history_len: int):
+    def __init__(self,
+                 index: VectorStoreIndex,
+                 prompt_path: str,
+                 history_len: int,
+                 retriever_top_k: int,
+                 reranker_top_n: int,
+                 hybrid_alpha: float):
         self.history_len = history_len
         self.index = index
         self.memory = ChatMemory()
@@ -46,9 +55,12 @@ class ChatEngine:
         with open(path.join(prompt_path, 'chat_engine', 'system_message.json'), 'r') as f:
             self.system_prompt = json.load(f)['message']
         self.chat_engine = OpenAI()
-        self.query_engine = index.as_query_engine(vector_store_query_mode='hybrid',
-                                                  symilarity_top_k=1,
-                                                  alpha=.8)
+        self.retriever = VectorIndexRetriever(index,
+                                              vector_store_query_mode=VectorStoreQueryMode.HYBRID,
+                                              symilarity_top_k=retriever_top_k,
+                                              alpha=hybrid_alpha,
+                                              sparse_top_k=retriever_top_k)
+        self.reranker = LLMRerank(choice_batch_size=5, top_n=reranker_top_n, service_context=index.service_context)
         self.preprocessor_prompt = create_prompt(prompt_path)
         self.preprocessor_engine = OpenAI()
 
@@ -62,12 +74,21 @@ class ChatEngine:
 
     def query(self):
         # create general query question
-        print(self.memory.memory)
         history = self.memory.memory[:-1] + [{'role': 'user_last', 'content': self.memory.memory[-1]['content']}]
         preprocessed = preprocess_question(self.preprocessor_prompt, history, self.preprocessor_engine)
 
         # get context and metadata
-        context = self.query_engine.retrieve(QueryBundle(preprocessed))[0]
+        query_bundle = QueryBundle(preprocessed)
+        nodes = self.retriever.retrieve(query_bundle)
+        print(len(nodes))
+        try:
+            r_nodes = self.reranker.postprocess_nodes(nodes, query_bundle)
+            if len(r_nodes) > 0:
+                nodes = r_nodes
+        except Exception as _:
+            pass
+        print(len(nodes))
+        context = nodes[0]
         file_name = context.node.metadata['file_name']
         page_number = context.node.metadata['page_label']
 
@@ -76,7 +97,6 @@ class ChatEngine:
     def chat(self, context: NodeWithScore):
         # generate response
         system_prompt_with_context = self.system_prompt + context.node.get_content()
-        print(self.memory.memory)
         history = [{'role': 'system', 'content': system_prompt_with_context}] + self.memory.memory
         resp = self.chat_engine.chat.completions.create(model='gpt-3.5-turbo', messages=history, stream=True)
 
@@ -102,19 +122,8 @@ if __name__ == '__main__':
 
     store_index = VectorStoreIndex.from_vector_store(vector_store, service_context=service_context)
 
-    chat_engine = ChatEngine(store_index, './prompts', 6)
-
-    #interface = gr.ChatInterface(
-    #    chat_engine.chat,
-    #    chatbot=gr.Chatbot(height=500),
-    #    textbox=gr.Textbox(placeholder="Kérdezz bármit a felvételiről.", container=False, scale=7),
-    #    title="PontszámítódIK",
-    #    description="Kérdezz az ELTE IK pontszámítási aszisztensétől a felvételiről.",
-    #    theme="soft",
-    #    retry_btn=None,
-    #    undo_btn="Delete Previous",
-    #    clear_btn="Clear",
-    #)
+    chat_engine = ChatEngine(store_index,
+                             './prompts', 6, 10, 1, .8)
 
     with gr.Blocks() as interface:
         chatbot = gr.Chatbot()
@@ -123,6 +132,8 @@ if __name__ == '__main__':
 
         file = gr.Textbox()
         page = gr.Number()
+
+        # TODO: add clear and undo
 
         def user(user_message, history):
             return "", history + [[user_message, None]]
