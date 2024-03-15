@@ -1,0 +1,50 @@
+{
+  "examples": [
+    [
+      {
+      "role": "user",
+      "content": "Szia, a felvételi ponthatárokról szeretnék kérdezni."
+      },
+      {
+      "role": "assistant",
+      "content": "Szia miről szeretnél kérdezni?"
+      },
+      {
+      "role": "user_last",
+      "content": "2024 ben felvételizek és az lenne a kérdésem, hogy hány pont jár egy 80%-os emelt matek érettségire?"
+      },
+      {
+      "role": "formed",
+      "content": "A 2024-es felvételi rendszerben, hogy számítanak bele az emelt érettségik a felvételizők pontszámába?"
+      }
+    ],
+    [
+      {
+      "role": "user",
+      "content": "Az ELTE IK PTI-re szeretnék felvételizni, milyen választott érettségikre lesz szükségem?"
+      },
+      {
+      "role": "assistant",
+      "content": "Erre a szakra az informatika vagy fizika ajánlott választott érettséginek."
+      },
+      {
+      "role": "user_last",
+      "content": "Nagyjából milyen eredményekre lenne szükségem, hogy felvételt nyerjek?"
+      },
+      {
+      "role": "formed",
+      "content": "Az ELTE IK PTI-re szakra milyen magas a ponthatár?"
+      }
+    ],
+    [
+      {
+      "role": "user_last",
+      "content": "What kind of elevated final exams do I need to take for ELTE IK PTI?"
+      },
+      {
+      "role": "formed",
+      "content": "Milyen emelt érettségik ajánlottak az ELTE IK PTI Bsc szakra?"
+      }
+    ]
+  ]
+}
