@@ -1,3 +1,5 @@
+import os.path
+
 from llama_index.core.indices.vector_store import VectorIndexRetriever
 from llama_index.core.postprocessor import LLMRerank
 from llama_index.core.vector_stores.types import VectorStoreQueryMode
@@ -11,6 +13,12 @@ from llama_index.core.chat_engine.types import ChatMode
 from llama_index.core.prompts import ChatMessage, MessageRole
 from llama_index.core.schema import QueryBundle, NodeWithScore
 from weaviate.embedded import EmbeddedOptions
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
+from InstructorEmbedding import INSTRUCTOR
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+import uvicorn
 
 import gradio as gr
 
@@ -21,6 +29,10 @@ from preprocessor import create_prompt, preprocess_question
 import json
 from os import path
 from openai import OpenAI
+from pathlib import Path
+from gradio_pdf import PDF
+
+dir_ = Path(__file__).parent
 
 
 class ChatMemory:
@@ -46,7 +58,7 @@ class ChatEngine:
                  prompt_path: str,
                  history_len: int,
                  retriever_top_k: int,
-                 reranker_top_n: int,
+                 rerank: bool,
                  hybrid_alpha: float):
         self.history_len = history_len
         self.index = index
@@ -60,7 +72,9 @@ class ChatEngine:
                                               symilarity_top_k=retriever_top_k,
                                               alpha=hybrid_alpha,
                                               sparse_top_k=retriever_top_k)
-        self.reranker = LLMRerank(choice_batch_size=5, top_n=reranker_top_n, service_context=index.service_context)
+        self.do_rerank = rerank
+        if self.do_rerank:
+            self.reranker = INSTRUCTOR('hkunlp/instructor-large')
         self.preprocessor_prompt = create_prompt(prompt_path)
         self.preprocessor_engine = OpenAI()
 
@@ -80,19 +94,22 @@ class ChatEngine:
         # get context and metadata
         query_bundle = QueryBundle(preprocessed)
         nodes = self.retriever.retrieve(query_bundle)
-        print(len(nodes))
-        try:
-            r_nodes = self.reranker.postprocess_nodes(nodes, query_bundle)
-            if len(r_nodes) > 0:
-                nodes = r_nodes
-        except Exception as _:
-            pass
-        print(len(nodes))
-        context = nodes[0]
-        file_name = context.node.metadata['file_name']
-        page_number = context.node.metadata['page_label']
 
-        return context, file_name, page_number
+        return nodes, preprocessed
+
+    def rerank(self, query: str, nodes: list[NodeWithScore]):
+        if not self.do_rerank:
+            max_score_idx = np.argmax(list(map(lambda x: x.score, nodes)))
+            return nodes[max_score_idx]
+
+        corpus = list(map(lambda x: ['Represent the Hungarian document for retrieval: ', x.node.get_content()], nodes))
+        query = ['Represent the Hungarian question for retrieving supporting documents: ', query]
+        query_embed = self.reranker.encode(query)
+        corpus_embed = self.reranker.encode(corpus)
+        similarities = cosine_similarity(query_embed, corpus_embed)
+        retrieved_doc_idx = np.argmax(similarities)
+
+        return nodes[retrieved_doc_idx]
 
     def chat(self, context: NodeWithScore):
         # generate response
@@ -106,6 +123,10 @@ class ChatEngine:
             if chunk.choices[0].delta.content is not None:
                 partial_message = partial_message + chunk.choices[0].delta.content
                 yield partial_message
+
+
+def prepare_pdf_html_embed(src: str, page_num: int):
+    return f'<embed src="/static/{os.path.basename(src)}#page={page_num}" width="700" height="900"></embed>'
 
 
 if __name__ == '__main__':
@@ -123,17 +144,18 @@ if __name__ == '__main__':
     store_index = VectorStoreIndex.from_vector_store(vector_store, service_context=service_context)
 
     chat_engine = ChatEngine(store_index,
-                             './prompts', 6, 10, 1, .8)
+                             './prompts', 6, 10, False, .8)
 
-    with gr.Blocks() as interface:
+    app = FastAPI()
+    static_dir = Path('./data/elte_ik')
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
+    with (gr.Blocks() as block):
         chatbot = gr.Chatbot()
         msg = gr.Textbox()
         clear = gr.ClearButton([msg, chatbot])
 
-        file = gr.Textbox()
-        page = gr.Number()
-
-        # TODO: add clear and undo
+        document = gr.HTML(label='document')
 
         def user(user_message, history):
             return "", history + [[user_message, None]]
@@ -142,13 +164,16 @@ if __name__ == '__main__':
             if len(history) == 0:
                 return
             chat_engine.memory_from_gr_hist(history)
-            context, file_name, page_number = chat_engine.query()
+            nodes, preprocessed = chat_engine.query()
+            context = chat_engine.rerank(preprocessed, nodes)
             for partial_resp in chat_engine.chat(context):
                 history[-1][1] = partial_resp
-                yield history, file_name, page_number
+                yield (history,
+                       prepare_pdf_html_embed(context.node.metadata['file_name'], context.node.metadata['page_label']))
 
         msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
-            bot, chatbot, [chatbot, file, page]
+            bot, chatbot, [chatbot, document]
         )
 
-    interface.launch()
+    app = gr.mount_gradio_app(app, block, path="/")
+    uvicorn.run(app, host="0.0.0.0", port=7860)
