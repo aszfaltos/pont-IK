@@ -58,6 +58,7 @@ class ChatEngine:
                  prompt_path: str,
                  history_len: int,
                  retriever_top_k: int,
+                 reranker_top_n: int,
                  rerank: bool,
                  hybrid_alpha: float):
         self.history_len = history_len
@@ -65,13 +66,14 @@ class ChatEngine:
         self.memory = ChatMemory()
         self.prompt_path = prompt_path
         with open(path.join(prompt_path, 'chat_engine', 'system_message.json'), 'r') as f:
-            self.system_prompt = json.load(f)['message']
+            self.system_prompt = json.load(f)
         self.chat_engine = OpenAI()
         self.retriever = VectorIndexRetriever(index,
                                               vector_store_query_mode=VectorStoreQueryMode.HYBRID,
                                               symilarity_top_k=retriever_top_k,
                                               alpha=hybrid_alpha,
                                               sparse_top_k=retriever_top_k)
+        self.reranker_top_n = reranker_top_n
         self.do_rerank = rerank
         if self.do_rerank:
             self.reranker = INSTRUCTOR('hkunlp/instructor-large')
@@ -97,36 +99,57 @@ class ChatEngine:
 
         return nodes, preprocessed
 
-    def rerank(self, query: str, nodes: list[NodeWithScore]):
+    def rerank(self, query: str, nodes: list[NodeWithScore]) -> list[NodeWithScore]:
         if not self.do_rerank:
-            max_score_idx = np.argmax(list(map(lambda x: x.score, nodes)))
-            return nodes[max_score_idx]
+            max_score_idx = np.argsort(list(map(lambda x: x.score, nodes)))[:self.reranker_top_n].tolist()
+            return [nodes[idx] for idx in max_score_idx]
 
         corpus = list(map(lambda x: ['Represent the Hungarian document for retrieval: ', x.node.get_content()], nodes))
         query = ['Represent the Hungarian question for retrieving supporting documents: ', query]
         query_embed = self.reranker.encode(query)
         corpus_embed = self.reranker.encode(corpus)
         similarities = cosine_similarity(query_embed, corpus_embed)
-        retrieved_doc_idx = np.argmax(similarities)
+        retrieved_doc_idx = np.argsort(similarities)[:self.reranker_top_n].tolist()
 
-        return nodes[retrieved_doc_idx]
+        return [nodes[idx] for idx in retrieved_doc_idx]
 
-    def chat(self, context: NodeWithScore):
+    def chat(self, context: list[NodeWithScore]):
         # generate response
-        system_prompt_with_context = self.system_prompt + context.node.get_content()
+        system_prompt_with_context = (self.system_prompt['message'] + self.system_prompt['source_instruction'] +
+                                      'The sources you can use to answer questions:\n' +
+                                      '\n'.join([f'SOURCE-{idx}:\n' + cont.node.get_content()
+                                                 for idx, cont in enumerate(context)]))
         history = [{'role': 'system', 'content': system_prompt_with_context}] + self.memory.memory
-        resp = self.chat_engine.chat.completions.create(model='gpt-3.5-turbo', messages=history, stream=True)
+        resp = (self.chat_engine.chat.completions.create(model='gpt-3.5-turbo', messages=history, stream=False,
+                                                         response_format={"type": "json_object"}).choices[0]
+                .message.content.strip())
 
+        return resp
         # return stream
-        partial_message = ""
-        for chunk in resp:
-            if chunk.choices[0].delta.content is not None:
-                partial_message = partial_message + chunk.choices[0].delta.content
-                yield partial_message
+        # partial_message = ""
+        # for chunk in resp:
+        #     if chunk.choices[0].delta.content is not None:
+        #         partial_message = partial_message + chunk.choices[0].delta.content
+        #         yield partial_message
 
 
 def prepare_pdf_html_embed(src: str, page_num: int):
-    return f'<embed src="/static/{os.path.basename(src)}#page={page_num}" width="700" height="900"></embed>'
+    return f'<embed id="doc" src="/static/{os.path.basename(src)}#page={page_num}" width="700" height="900"></embed>'
+
+
+def format_answer(resp: str, context):
+    resp = json.loads(resp)["response"]
+    ret = ""
+    for piece in resp:
+        if piece['source'] == "NONE":
+            ret += piece['content']
+            continue
+        ctx_idx = int(piece['source'].split('-')[1])
+        src = context[ctx_idx].node.metadata['file_name']
+        page_num = context[ctx_idx].node.metadata['page_label']
+        ret += f'<a class="chat-link" href="/static/{os.path.basename(src)}#page={page_num}">{piece["content"]}</a>'
+
+    return ret
 
 
 if __name__ == '__main__':
@@ -144,18 +167,18 @@ if __name__ == '__main__':
     store_index = VectorStoreIndex.from_vector_store(vector_store, service_context=service_context)
 
     chat_engine = ChatEngine(store_index,
-                             './prompts', 6, 10, False, .8)
+                             './prompts', 6, 10, 3, False, .8)
 
     app = FastAPI()
     static_dir = Path('./data/elte_ik')
     app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
-    with (gr.Blocks() as block):
-        chatbot = gr.Chatbot()
+    with gr.Blocks() as block:
+        chatbot = gr.Chatbot(elem_id='chatbot')
         msg = gr.Textbox()
         clear = gr.ClearButton([msg, chatbot])
 
-        document = gr.HTML(label='document')
+        document = gr.HTML('<embed id="doc"></embed>', label='document')
 
         def user(user_message, history):
             return "", history + [[user_message, None]]
@@ -166,14 +189,32 @@ if __name__ == '__main__':
             chat_engine.memory_from_gr_hist(history)
             nodes, preprocessed = chat_engine.query()
             context = chat_engine.rerank(preprocessed, nodes)
-            for partial_resp in chat_engine.chat(context):
-                history[-1][1] = partial_resp
-                yield (history,
-                       prepare_pdf_html_embed(context.node.metadata['file_name'], context.node.metadata['page_label']))
+            resp = chat_engine.chat(context)
+            history[-1][1] = format_answer(resp, context)
 
-        msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
-            bot, chatbot, [chatbot, document]
-        )
+            return history
+
+
+        INJECT_JS = """async () => {
+                        setTimeout(() => {
+                            var anchors = document.getElementsByClassName("chat-link");
+                            let embed = document.getElementById("doc");
+                            for (let a of anchors) {
+                                a.addEventListener("click", (e) => {
+                                    e.preventDefault();
+                                    embed.src = e.target.href;
+                                });
+                            }
+                        }, 10)
+                    }"""
+
+        msg.submit(user, [msg, chatbot], [msg, chatbot]).then(
+            bot, chatbot, chatbot).then(
+            None, None, None, js=INJECT_JS)
 
     app = gr.mount_gradio_app(app, block, path="/")
     uvicorn.run(app, host="0.0.0.0", port=7860)
+
+    # action agentek
+    # rag action vagy tool action
+    # markdownban formázd be a gondolatmenetet a chatbe
