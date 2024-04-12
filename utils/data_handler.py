@@ -63,7 +63,7 @@ def get_batch_with_cursor(client, collection_name, batch_size, cursor=None):
     query = (
         client.query.get(
             collection_name,         # update with your collection name
-            [] # update with the required properties
+            []  # update with the required properties
         )
         .with_additional(["id"])
         .with_limit(batch_size)
@@ -90,20 +90,3 @@ def subject_filter(documents: list) -> list:
         ret.append(documents[idx])
 
     return ret
-
-
-if __name__ == '__main__':
-    # parser = argparse.ArgumentParser(prog='Data loader', description='Lorem ipsum', epilog='dolor sit amet')
-    # parser.add_argument('command', choices=['load', 'empty'])
-    # parser.add_argument('-p', '--path', type=str)
-    # parser.add_argument('-m', '--model', type=str)
-    # parser.add_argument('-n', '--name', type=str)
-    # parser.add_argument('-s', '--chunk_size', type=int)
-    # parser.add_argument('-o', '--chunk_overlap', type=int)
-
-    fill_db("data/elte_ik/",
-            'text-embedding-ada-002',
-            'ElteIk',
-            1024,
-            20,
-            [subject_filter])
