@@ -27,7 +27,7 @@ class ChatHistory:
         return self._history
 
     def get_last_n_message(self, n: int):
-        n = max(len(self._history), n)
+        n = min(len(self._history), n)
         if n == 0:
             return []
         return self._history[-n:]

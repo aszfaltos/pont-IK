@@ -48,6 +48,8 @@ class Preprocessor:
 
         prompt = self.add_history_to_prompt(history)
 
+        print(history)
+
         instruct_completion = self.client.completions.create(
             prompt=prompt,
             model='gpt-3.5-turbo-instruct',
