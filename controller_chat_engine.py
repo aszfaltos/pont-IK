@@ -37,8 +37,6 @@ class ControllerChatEngine:
         return self._history
 
     def chat(self):
-        # doksik külön summary-k és külön collectionok
-
         context = {}
 
         history = [{'role': 'system', 'content': self.system_prompt}] + self._history.get_all_messages()

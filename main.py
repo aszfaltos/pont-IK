@@ -18,7 +18,6 @@ from dotenv import load_dotenv
 import json
 from pathlib import Path
 
-from basic_chat_engine import BasicChatEngine
 from controller_chat_engine import ControllerChatEngine
 from tools import RerankQueryEngine, response_synthesizer, point_calc_regular, point_calc_double
 
@@ -99,10 +98,6 @@ if __name__ == '__main__':
         def bot(history):
             if len(history) == 0:
                 return
-            # chat_engine.reload_history(history[:-1])
-            # nodes, preprocessed = query_engine.query(history[-1], chat_engine.get_history())
-            # resp = chat_engine.chat(nodes)
-            # history[-1][1] = format_answer(resp, nodes)
 
             chat_engine.reload_history(history)
             resp, ns = chat_engine.chat()
@@ -133,7 +128,3 @@ if __name__ == '__main__':
 
     app = gr.mount_gradio_app(app, block, path="/")
     uvicorn.run(app, host="0.0.0.0", port=7860)
-
-    # action agentek
-    # rag action vagy tool action
-    # markdownban formázd be a gondolatmenetet a chatbe
