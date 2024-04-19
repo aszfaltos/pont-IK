@@ -4,6 +4,7 @@ from llama_index.core.readers import SimpleDirectoryReader
 from llama_index.core.node_parser import SimpleNodeParser
 from llama_index.vector_stores.weaviate import WeaviateVectorStore
 from llama_index.core.storage import StorageContext
+from llama_index.core.node_parser import SentenceSplitter
 from weaviate.embedded import EmbeddedOptions
 
 import weaviate
@@ -26,8 +27,8 @@ def fill_db(doc_path: str, embedding_model: str, index_name: str, chunk_size: in
     for doc_filter in filters:
         documents = doc_filter(documents)
 
-    parser = SimpleNodeParser.from_defaults(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
-    nodes = parser.get_nodes_from_documents(documents)
+    splitter = SentenceSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+    nodes = splitter.get_nodes_from_documents(documents)
 
     vector_store = WeaviateVectorStore(weaviate_client=client, index_name=index_name, text_key='content')
     storage_context = StorageContext.from_defaults(vector_store=vector_store)
