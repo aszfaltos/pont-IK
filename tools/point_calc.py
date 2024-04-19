@@ -14,7 +14,7 @@ def point_calc_regular(math_study: Tuple[float, float],
                        language_exam: None | str,
                        oktv_relevant: None | int,
                        oktv_irrelevant: None | int,
-                       ):
+                       ) -> dict:
     """
     Calculates the university acceptance points for ELTE IK PTI BSc according to the regular point calculation rules.
 
@@ -56,14 +56,15 @@ def point_calc_regular(math_study: Tuple[float, float],
     institution_points = _calc_institution_points(math_final, chosen_final, language_exam, oktv_relevant,
                                                   oktv_irrelevant)
 
-    return round(study_points) + round(final_points_1) + round(final_points_2) + institution_points
+    return {'expected_points': (round(study_points) + round(final_points_1) +
+                                round(final_points_2) + institution_points)}
 
 
 def point_calc_double(math_final: Tuple[float, bool],
                       chosen_final: Tuple[float, bool],
                       language_exam: None | str,
                       oktv_relevant: None | int,
-                      oktv_irrelevant: None | int):
+                      oktv_irrelevant: None | int) -> dict:
     """
     Calculates the university acceptance points for ELTE IK PTI BSc according to the double final exam point calculation
     rules.
@@ -84,7 +85,7 @@ def point_calc_double(math_final: Tuple[float, bool],
     final_points_2 = math_final[0] * (1 if math_final[1] else .67) + chosen_final[0] * (1 if chosen_final[1] else .67)
     institution_points = _calc_institution_points(math_final, chosen_final, language_exam, oktv_relevant,
                                                   oktv_irrelevant)
-    return round(final_points_2) * 2 + institution_points
+    return {'expected_points': round(final_points_2) * 2 + institution_points}
 
 
 def _calc_institution_points(math_final: Tuple[float, bool],

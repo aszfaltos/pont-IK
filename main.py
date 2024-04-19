@@ -62,8 +62,8 @@ def format_controller_answer(resp: dict):
 if __name__ == '__main__':
     load_dotenv()
 
-    llm = LlamaOpenAI(model='gpt-3.5-turbo')
-    embed_model = OpenAIEmbedding(model='text-embedding-ada-002')
+    llm = LlamaOpenAI(model='gpt-4-turbo')
+    embed_model = OpenAIEmbedding(model='text-embedding-3-large')
 
     client = weaviate.Client(embedded_options=EmbeddedOptions())
     vector_store = WeaviateVectorStore(weaviate_client=client, index_name="ElteIk", text_key="content")
@@ -78,7 +78,7 @@ if __name__ == '__main__':
                                      './prompts/preprocessor')
     chat_engine = ControllerChatEngine(query_engine,
                                        response_synthesizer,
-                                       './prompts/chat_engine',
+                                       './prompts/controller_engine',
                                        15,
                                        [point_calc_regular, point_calc_double])
 

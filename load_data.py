@@ -11,7 +11,7 @@ if __name__ == '__main__':
                                                  'database for embedding and indexing.')
     parser.add_argument('-p', '--path', type=str, default='./data', help='Path to data directory')
     parser.add_argument('-m', '--model',
-                        type=str, default='text-embedding-ada-002', help='Open AI embedding model')
+                        type=str, default='text-embedding-3-large', help='Open AI embedding model')
     parser.add_argument('-n', '--name', type=str, default='ElteIk', help='Index name')
     parser.add_argument('-s', '--chunk_size',
                         type=int, default=1024, help='Size of one context node in tokens')
