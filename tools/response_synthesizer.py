@@ -18,9 +18,13 @@ def response_synthesizer(content: list[dict]) -> str:
         source file if "file" and "page" are not None.
     """
     ret = ''
-    print(content)
+    # print(content)
     for piece in content:
-        if piece['file'] == 'None':
+        try:
+            if piece['file'] == 'None':
+                ret += piece['text'] + ' '
+                continue
+        except KeyError:
             ret += piece['text'] + ' '
             continue
         src = piece['file']

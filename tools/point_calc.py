@@ -56,7 +56,7 @@ def point_calc_regular(math_study: Tuple[float, float],
     institution_points = _calc_institution_points(math_final, chosen_final, language_exam, oktv_relevant,
                                                   oktv_irrelevant)
 
-    return {'expected_points': (round(study_points) + round(final_points_1) +
+    return {"expected_points": (round(study_points) + round(final_points_1) +
                                 round(final_points_2) + institution_points)}
 
 
@@ -85,7 +85,7 @@ def point_calc_double(math_final: Tuple[float, bool],
     final_points_2 = math_final[0] * (1 if math_final[1] else .67) + chosen_final[0] * (1 if chosen_final[1] else .67)
     institution_points = _calc_institution_points(math_final, chosen_final, language_exam, oktv_relevant,
                                                   oktv_irrelevant)
-    return {'expected_points': round(final_points_2) * 2 + institution_points}
+    return {"expected_points": round(final_points_2) * 2 + institution_points}
 
 
 def _calc_institution_points(math_final: Tuple[float, bool],
@@ -93,6 +93,11 @@ def _calc_institution_points(math_final: Tuple[float, bool],
                              language_exam: None | str,
                              oktv_relevant: None | int,
                              oktv_irrelevant: None | int):
+    if oktv_relevant == "None":
+        oktv_relevant = None
+    if oktv_irrelevant == "None":
+        oktv_irrelevant = None
+
     institution_points = 0
     if math_final[1] and math_final[0] >= 45:
         institution_points = institution_points + 50
@@ -116,4 +121,4 @@ def _calc_institution_points(math_final: Tuple[float, bool],
     if oktv_irrelevant is not None and oktv_irrelevant <= 10:
         institution_points = institution_points + 20
 
-    return max(100, institution_points)
+    return min(100, institution_points)

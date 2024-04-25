@@ -1,0 +1,19 @@
+{
+  "examples": [
+    {
+      "user_question": "Szia!",
+      "previous_iterations": [
+      ],
+      "current_iteration": {
+        "thought": "A felhasználó nem kérdezett még csak beszélgetést kezdeményez.",
+        "reason": "Nem szükséges kontextus a válasz generálásához, mivel még csak köszönt a felhasználó.",
+        "action": "response_synthesizer",
+        "response": {
+          "content": [
+            { "text": "Szia! Miben segíthetek?.", "file": "None", "page": "None"}
+          ]
+        }
+      }
+    }
+  ]
+}

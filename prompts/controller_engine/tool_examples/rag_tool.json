@@ -1,0 +1,80 @@
+{
+  "examples": [
+    {
+      "user_question": "Milyen tárgy lehet a választott tárgyam ha az elte ik-ra szeretnék menni?",
+      "previous_iterations": [
+      ],
+      "current_iteration": {
+        "thought": "Plusz információra van szükségem a kérdés megválaszolásához.",
+        "reason": "A felhasználó a felvételi eljárásról kérdezett, és a válasz információtartalmának pontosságaérdekében érdemes a dokumentumokban keresni. Ehhez nincs szükségem további információra a felhasználótól.",
+        "action": "rag_tool",
+        "response": {}
+      }
+    },
+    {
+      "user_question": "Milyen tárgy lehet a választott tárgyam ha az elte ik-ra szeretnék menni?",
+      "previous_iterations": [
+        {
+          "thought": "Plusz információra van szükségem a kérdés megválaszolásához.",
+          "reason": "A felhasználó a felvételi eljárásról kérdezett, és a válasz információtartalmának pontosságaérdekében érdemes a dokumentumokban keresni. Ehhez nincs szükségem további információra a felhasználótól.",
+          "action": "rag_tool",
+          "response": {},
+          "observation": {
+            "query": "Milyen érettségi tárgyakat lehet választani az ELTE IK PTI BSC-re a kötelezőkön és az idegen nyelven kívül?",
+            "files": [
+              {"file": "ik_pontszamitas.pdf", "page": 13},
+              {"file": "ik_pontszamitas.pdf", "page": 14},
+              {"file": "ik_pontszamitas.pdf", "page": 12},
+              {"file": "felvi_pontszamitas.pdf", "page": 2},
+              {"file": "felvi_pontszamitas.pdf", "page": 1}
+            ]
+          }
+        }
+      ],
+      "current_iteration": {
+        "thought": "A kontextus alapján meg tudom válaszolni a kérdést.",
+        "reason": "Az előző megfigyelés által megadott kontextus elég információt tartalmaz a kérdésmegválaszolásához.",
+        "action": "response_synthesizer",
+        "response": {
+          "content": [
+            { "text": "Egy generált válasz rész a kontextus alapján.", "file": "ik_pontszamitas.pdf", "page": 13},
+            { "text": "Egy generált válasz rész egy másik kontextus alapján.", "file": "felvi_pontszamitas.pdf", "page": 2},
+            { "text": "Egy generált válasz rész kontextus nélkül.", "file": "None", "page": "None"}
+          ]
+        }
+      }
+    },
+    {
+      "user_question": "Melyik választható tárgyakat preferálja jobban az elte?",
+      "previous_iterations": [
+        {
+          "thought": "Plusz információra van szükségem a kérdés megválaszolásához.",
+          "reason": "A felhasználó az elte felvételi kritériumairól kérdezett, a pontos válasz érdekében keresnem kell a dokumentumokban, ezért a rag_tool-t kell használnom.",
+          "action": "rag_tool",
+          "response": {},
+          "observation": {
+            "query": "Milyen érettségi tárgyak ajánlottak választottnak az ELTE IK PTI BSC-re a kötelezőkön és az idegen nyelven kívül?",
+            "files": [
+              {"file": "ik_pontszamitas.pdf", "page": 13},
+              {"file": "ik_pontszamitas.pdf", "page": 14},
+              {"file": "ik_pontszamitas.pdf", "page": 12},
+              {"file": "ik_pontszamitas.pdf", "page": 20},
+              {"file": "felvi_pontszamitas.pdf", "page": 3}
+            ]
+          }
+        }
+      ],
+      "current_iteration": {
+        "thought": "Az előző ciklusban megkapott források alapján nem tudom megválaszolni a kérdést.",
+        "reason": "Nincs elegendő információ a forrásban a kérdés megválaszolásához, de már egyszer használtam a rag_tool-t, igy egy általános választ kell adnom a rendelkezésre álló információk alapján és ezt jelezni a kérdező felé.",
+        "action": "response_synthesizer",
+        "response": {
+          "content": [
+              { "text": "Általános válasz a rendelkezésre álló információk alapján.", "file": "ik_pontszamitas.pdf", "page": 12},
+              { "text": "A forrás alapján csak ennyi iformációval tudok szolgálni, esetleg segíthetek mégvalamiben?.", "file": "None", "page": "None"}
+            ]
+          }
+      }
+    }
+  ]
+}

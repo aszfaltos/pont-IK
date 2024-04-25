@@ -1,0 +1,94 @@
+{
+  "examples": [
+    {
+      "user_question": "Tudnál segíteni kiszámolni a felvételi pontjaimat?",
+      "previous_iterations": [
+      ],
+      "current_iteration": {
+        "thought": "A felhasználó az eredményei alapján szeretné kiszámítani a felvételi pontjait.",
+        "reason": "El kell mondanom a felhasználónak, hogy milyen lehetőségei vannak a pontok kiszámolására, az érettségi pontok duplázása, vagy a sima módszer amibe az utolsó két év tanulmányi átlaga is beleszámít.",
+        "action": "response_synthesizer",
+        "response": {
+        "content": [
+            { "text": "Természetesen, melyik módszert szeretnéd használni a pontok kiszámítására, az érettségi pontjaidat szeretnéd duplázni, vagy a tanulmányi átlagodat is szeretnéd beleszámítani?", "file": "None", "page": "None"}
+          ]
+        }
+      }
+    },
+    {
+      "user_question": "Duplázni szeretném az érettségi pontjaimat.",
+      "previous_iterations": [
+      ],
+      "current_iteration": {
+        "thought": "A felhasználó a felvételi pontjait szeretné kiszámolni az érettségi pontok duplázásával.",
+        "reason": "Még csak a módszerről döntött, az eredményeit nem közölte velem, így nem áll minden paraméter rendelkezésemre az eszköz meghívásához. Ezeket a paramétereket be kell kérnem a felhasználótól.",
+        "action": "response_synthesizer",
+        "response": {
+        "content": [
+            { "text": "Rendben, szükségem lenne a matek és a választott érettségi eredményedre százalékos formában, valamint hogy ezek emelt érettségik voltak-e, illetve ha oktvn-n értél el helyezést azt is írd le, hogy milyen tárgyból és hanyadik lettés. Ezen felül pedig azt is írd le kérlek hogy van e nyelvvizsga eredményed, és ha igen akkor milyen szintű.", "file": "None", "page": "None"}
+          ]
+        }
+      }
+    },
+    {
+      "user_question": "Rendben, a matek érettségim 80%-os, és van egy B2-es angol nyelvvizsgám.",
+      "previous_iterations": [
+      ],
+      "current_iteration": {
+        "thought": "A felhasználó leírta az eredményeit, de nem mindent amit kértem tőle.",
+        "reason": "A felhasználó nem részletezte, hogy az érettségije emelt volt-e vagy sem, és a választott érettségi eredményét sem osztotta meg velem. Így nem tudom a pntszámító eszközt használni ezért pontosítást kell kérnem a felhasználótól.",
+        "action": "response_synthesizer",
+        "response": {
+        "content": [
+            { "text": "Ne haragudj, de ez nem elegendő információ ahhoz, hogy kiszámoljam a pontjaidat, szükségem lenne arra, hogy a matek érettségid emelt volt-e, illetve hogy milyen lett a választott érettségid eredménye, valamint hogy az emelt volt-e.", "file": "None", "page": "None"}
+          ]
+        }
+      }
+    },
+    {
+      "user_question": "Oh, bocsánat, a matek érettségim emelt volt, az infó érettségim pedig 85%-os és közép szintű.",
+      "previous_iterations": [
+      ],
+      "current_iteration": {
+        "thought": "A felhasználó minden szükséges adatot megosztott.",
+        "reason": "Minden információ rendelkezésemre áll, hogy meghívjam a point_calc_double eszközt.",
+        "action": "point_calc_double",
+        "response": {
+          "math_final": [80, true],
+          "chosen_final": [85, false],
+          "language_exam": "B2",
+          "oktv_relevant": "None",
+          "oktv_irrelevant": "None"
+        }
+      }
+    },
+    {
+      "user_question": "Oh, bocsánat, a matek érettségim emelt volt, az infó érettségim pedig 85%-os és közép szintű.",
+      "previous_iterations": [
+        {
+          "thought": "A felhasználó minden szükséges adatot megosztott.",
+          "reason": "Minden információ rendelkezésemre áll, hogy meghívjam a point_calc_double eszközt.",
+          "action": "point_calc_double",
+          "response": {
+            "math_final": [80, true],
+            "chosen_final": [85, false],
+            "language_exam": "B2",
+            "oktv_relevant": "None",
+            "oktv_irrelevant": "None"
+          },
+          "observation": {"expected_points": 412}
+        }
+      ],
+      "current_iteration": {
+        "thought": "Az előző iterációban kiszámoltam a felhasználó pontjait.",
+        "reason": "Az előző iteráció observationja alapján a felhasználónak 412 a várható pontszáma, ezt most neki is meg kell fogalmaznom.",
+        "action": "response_synthesizer",
+        "response": {
+        "content": [
+            { "text": "Az általad megadott adatok alapján a várható felvételi pontszámod 412 pont. Ha úgy érzed, hogy ez nem elegendő ajánlom az emelt érettségi tételét, mivel az százalékosan is több pontot ér illetve sok intézmén plusz pontot is ad érte.", "file": "None", "page": "None"}
+          ]
+        }
+      }
+    }
+  ]
+}

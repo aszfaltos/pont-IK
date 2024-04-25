@@ -22,7 +22,17 @@ class ControllerChatEngine:
         self._chat_engine = OpenAI()
         self._history = ChatHistory()
         with open(path.join(prompt_path, 'system_message.json'), 'r') as f:
-            self.system_prompt = self._generate_system_prompt(json.load(f))
+            sys_prompt = json.load(f)
+        with open(path.join(prompt_path, 'tool_examples', 'response_synthesizer.json'), 'r') as f:
+            resp_tool_example = json.load(f)
+        with open(path.join(prompt_path, 'tool_examples', 'rag_tool.json'), 'r') as f:
+            rag_tool_example = json.load(f)
+        with open(path.join(prompt_path, 'tool_examples', 'point_calc.json'), 'r') as f:
+            point_calc_example = json.load(f)
+        self.system_prompt = self._generate_system_prompt(sys_prompt,
+                                                          resp_tool_example['examples'] +
+                                                          rag_tool_example['examples'] +
+                                                          point_calc_example['examples'])
 
     def reload_history(self, gradio_history: list[list[str]]):
         self._history = ChatHistory.from_gradio_context(gradio_history, self.max_history_length)
@@ -41,20 +51,33 @@ class ControllerChatEngine:
 
         history = [{'role': 'system', 'content': self.system_prompt}] + self._history.get_all_messages()
 
-        observation = {}
+        instruction = ""
         resp_dict = []
         nodes = []
         for _ in range(5):
-            history[0]['content'] = (self.system_prompt + '\n# Previous iterations\n' + json.dumps(resp_dict) +
-                                     '\n# Context got from search:\n' + json.dumps(context))
+            history[0]['content'] = (self.system_prompt +
+                                     '\n# Context got from search\n' + json.dumps(context) +
+                                     ('\n# Instruction for next action\nIf you can read this you should always ' +
+                                      'decide on your next move according to this instruction no matter what you ' +
+                                      'think.\n' + instruction if instruction != '' else ''))
+
+            try:
+                history.append({
+                    'role': 'assistant',
+                    'content': str(resp_dict[-1])
+                })
+                history.append({
+                    'role': 'user',
+                    'content': resp_dict[-1]['observation']
+                })
+            except IndexError:
+                pass
 
             resp = (self._chat_engine.chat.completions
                     .create(model='gpt-4-turbo', messages=history, stream=False,
                             response_format={"type": "json_object"})
                     .choices[0].message.content.strip())
-
             resp_dict.append(json.loads(resp))
-            print(resp_dict[-1])
             if resp_dict[-1]['action'] == 'rag_tool':
                 nodes, p_q = self._rag_tool.query(self._history)
 
@@ -68,12 +91,20 @@ class ControllerChatEngine:
                     {'content': node.node.get_content(),
                      'file': node.node.metadata['file_name'], 'page': node.node.metadata['page_label']}
                     for idx, node in enumerate(nodes)]}
+
+                instruction = ("You have context, answer the user question using this context, or try to answer " +
+                               "it to the best of your abilities and tell the user that the context doesn't contain " +
+                               "enough information to answer their question totally if that's the case.")
             elif resp_dict[-1]['action'] in [tool.metadata.name for tool in self._other_tools]:
                 tool = list(filter(lambda tool: resp_dict[-1]['action'] == tool.metadata.name, self._other_tools))[0]
                 observation = str(tool.call(**resp_dict[-1]['response']).content)
+                if resp_dict[-1]['action'] == 'point_calc_regular' or resp_dict[-1]['action'] == 'point_calc_double':
+                    instruction = ("You have calculated the user's acceptance points you should answer the user " +
+                                   "by telling them that according to the information they have given they can " +
+                                   "expect the points in your last observation.")
             elif resp_dict[-1]['action'] == 'response_synthesizer':
                 observation = self._response_tool.call(**resp_dict[-1]['response']).content
-                return observation, nodes
+                return observation, nodes # , resp_dict
             else:
                 break
 
@@ -88,72 +119,13 @@ class ControllerChatEngine:
         desc = '\n'.join(desc_split[1:])
         return f'- name: {func_tool.metadata.name}\n- function_descriptor: {func_desc}\n- description: {desc}\n'
 
-    def _generate_system_prompt(self, system_prompt: dict) -> str:
+    def _generate_system_prompt(self, system_prompt: dict, examples: list[dict]) -> str:
         ret = f'# {system_prompt["task_description"]["title"]}\n' + system_prompt['task_description']['content'] + '\n'
         ret += (f'# {system_prompt["general_tool_description"]["title"]}\n' +
                 system_prompt['general_tool_description']['content'] + '\n')
         ret += f'# {system_prompt["response_format"]["title"]}\n' + system_prompt['response_format']['content'] + '\n'
         ret += f'# {system_prompt["fix_tools"]["title"]}\n' + system_prompt['fix_tools']['content'] + '\n'
-        ret += ('# Examples\n' +
-                """
-                1. The user has asked a question.
-                    {
-                        "thought": "Plusz információra van szükségem a kérdés megválaszolásához.",
-                        "reason": "A felhasználó a felvételi eljárásról kérdezett, és a válasz információtartalmának pontossága
-                        érdekében érdemes a dokumentumokban keresni. Ehhez nincs szükségem további információra.",
-                        "action": "rag_tool",
-                        "response": {}
-                    }
-                2. The user has asked a question but in a previous iteration you searched for additional information so now you should answer it.
-                    {
-                        "thought": "A kontextus alapján meg tudom válaszolni a kérdést.",
-                        "reason": "Az előző megfigyelés által megadott kontextus elég információt tartalmaz a kérdés
-                        megválaszolásához.",
-                        "action": "response_synthesizer",
-                        "response": { "content": [ 
-                                        { "text": "Egy generált válasz rész a kontextus alapján.", "file": "file2.pdf", "page": "13"},
-                                        { "text": "Egy generált válasz rész kontextus nélkül.", "file": "file1.pdf", "page": "5"} 
-                                      ] 
-                                    }
-                    }
-                3. The user have not asked a question, they only want to chat with you
-                    {
-                        "thought": "A felhasználó nem kérdezett még csak beszélgetést kezdeményez.",
-                        "reason": "Nem szükséges kontextus a válasz generálásához, mivel még csak köszönt a felhasználó.",
-                        "action": "response_synthesizer",
-                        "response": { "content": [ 
-                                        { "text": "Szia! Miben segíthetek?.", "file": "None", "page": "None"}
-                                      ] 
-                                    }
-                    }
-                4. The user has asked a question but in a previous iteration you searched for additional information so now you should answer it.
-                    {
-                        "thought": "Az előző ciklusban megkapott források alapján meg tudom válaszolni a kérdést.",
-                        "reason": "Elegendő információ van az előző iterációban megszerzett dokumentumokban a kérdés
-                        megválaszolásához.",
-                        "action": "response_synthesizer",
-                        "response": { "content": [ 
-                                        { "text": "Válasz a kérdésre.", "file": "file1.pdf", "page": "2"},
-                                        { "text": "Válasz folytatása.", "file": "file2.pdf", "page": "25"}
-                                      ] 
-                                    }
-                    }
-                5. The user has asked a question but in a previous iteration you searched for additional information so now you should answer it.
-                    {
-                        "thought": "Az előző ciklusban megkapott források alapján nem tudom megválaszolni a kérdést.",
-                        "reason": "Nincs elegendő információ a forrásban a kérdés megválaszolásához, de már egyszer használtam a 
-                        rag_tool-t, igy egy általános választ kell adnom a rendelkezésre álló információk alapján és ezt jelezni a 
-                        kérdező felé.",
-                        "action": "response_synthesizer",
-                        "response": { "content": [ 
-                                        { "text": "Általános válasz a rendelkezésre álló információk alapján.", 
-                                          "file": "file3.pdf", "page": "12"}
-                                        { "text": "A forrás alapján csak ennyi ifromációval tudok szolgálni, esetleg segíthetek még 
-                                        valamiben?.", "file": "None", "page": "None"}
-                                      ] 
-                                    }
-                    }
-                """)
+        ret += '# Examples on how to use the tools\n' + '\n\n'.join([json.dumps(example) for example in examples])
         ret += (f'# Tool list\n' +
                 'Action should be their name and the response should be their parameters in a JSON format. ' +
                 'Be careful to always use all of the parameters, ' +

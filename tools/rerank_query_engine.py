@@ -3,11 +3,15 @@ from llama_index.core.vector_stores.types import VectorStoreQueryMode
 from llama_index.core.indices import VectorStoreIndex
 from llama_index.core.schema import NodeWithScore
 
+from llama_index.retrievers.bm25 import BM25Retriever
+
 from InstructorEmbedding import INSTRUCTOR
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
 from utils import ChatHistory, Preprocessor
+
+# spacy stemmer esetleg
 
 
 class RerankQueryEngine:
@@ -19,6 +23,8 @@ class RerankQueryEngine:
                  hybrid_alpha: float,
                  preprocessor_prompt_path: str):
         self._retriever = VectorIndexRetriever(index, similarity_top_k=retriever_top_k)
+        # self._bm25 = BM25Retriever.from_defaults(index=index, similarity_top_k=retriever_top_k)
+
         # githubon nézz rá hogy mi van
                           # VectorIndexRetriever(index,
                           #                      vector_store_query_mode=VectorStoreQueryMode.HYBRID,
@@ -61,6 +67,10 @@ class RerankQueryEngine:
         """
         preprocessed_query = self._preprocess_query(history)
         print(preprocessed_query)
+        # nodes_test = self._bm25.retrieve(preprocessed_query)
+        # print(len(nodes_test))
+        # for n in nodes_test:
+        #     print(n.node.metadata['file_name'])
         nodes = self._query_index(preprocessed_query)
         nodes = self._rerank_nodes(preprocessed_query, nodes)
 
