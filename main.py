@@ -1,21 +1,13 @@
-import os.path
-
 from llama_index.llms.openai import OpenAI as LlamaOpenAI
 from llama_index.embeddings.openai import OpenAIEmbedding
 from llama_index.core.service_context import ServiceContext
 from llama_index.core.indices import VectorStoreIndex
 from llama_index.vector_stores.weaviate import WeaviateVectorStore
 from weaviate.embedded import EmbeddedOptions
-from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
-import uvicorn
-
-import gradio as gr
 
 import weaviate
 from dotenv import load_dotenv
 
-import json
 from pathlib import Path
 
 from chat_engines import ControllerChatEngine
