@@ -1,5 +1,3 @@
-import os.path
-
 from llama_index.llms.openai import OpenAI as LlamaOpenAI
 from llama_index.embeddings.openai import OpenAIEmbedding
 from llama_index.core.service_context import ServiceContext
@@ -8,14 +6,13 @@ from llama_index.vector_stores.weaviate import WeaviateVectorStore
 from llama_index.core.evaluation import FaithfulnessEvaluator
 from llama_index.core import Response
 from weaviate.embedded import EmbeddedOptions
-import pandas as pd
 
 import weaviate
 from dotenv import load_dotenv
 
 import json
 
-from controller_chat_engine import ControllerChatEngine
+from chat_engines.controller_chat_engine import ControllerChatEngine
 from tools import RerankQueryEngine, response_synthesizer, point_calc_regular, point_calc_double
 
 if __name__ == '__main__':

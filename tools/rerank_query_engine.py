@@ -39,7 +39,7 @@ class RerankQueryEngine:
 
     def _preprocess_query(self, history: ChatHistory) -> str:
         h = history.get_all_messages()[:-1]
-        h.append({'role': 'user_last', 'content': history.get_last_n_message(1)[0]})
+        h.append({'role': 'user_last', 'content': history.get_last_n_message(1)[0]['content']})
         return self._preprocessor_engine.preprocess_question(h)
 
     def _query_index(self, query: str) -> list[NodeWithScore]:

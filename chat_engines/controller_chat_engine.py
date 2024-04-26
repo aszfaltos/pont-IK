@@ -68,11 +68,12 @@ class ControllerChatEngine:
                 })
                 history.append({
                     'role': 'user',
-                    'content': resp_dict[-1]['observation']
+                    'content': str(resp_dict[-1]['observation'])
                 })
             except IndexError:
                 pass
 
+            print(history)
             resp = (self._chat_engine.chat.completions
                     .create(model='gpt-4-turbo', messages=history, stream=False,
                             response_format={"type": "json_object"})
@@ -104,7 +105,7 @@ class ControllerChatEngine:
                                    "expect the points in your last observation.")
             elif resp_dict[-1]['action'] == 'response_synthesizer':
                 observation = self._response_tool.call(**resp_dict[-1]['response']).content
-                return observation, nodes # , resp_dict
+                return observation, nodes, resp_dict
             else:
                 break
 
