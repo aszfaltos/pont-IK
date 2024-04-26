@@ -1,11 +1,5 @@
-FROM huggingface/transformers-all-latest-gpu
+FROM python:3.10-bookworm
 LABEL authors="aszfalt"
-
-# Better init
-ENV TINI_VERSION="v0.19.0"
-
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
-RUN chmod +x /tini
 
 # add local scripts to path
 ENV PATH /home/user/.local/bin:$PATH
@@ -36,7 +30,6 @@ ENV PYTHONPATH /project:$PYTHONPATH
 ARG GIT_HASH
 ENV GIT_HASH=${GIT_HASH:-dev}
 
-# set entry point
-ENTRYPOINT ["/tini", "--"]
-
-# set location and privilidge for docker
+# set up gradio
+EXPOSE 7860
+ENV GRADIO_SERVER_NAME="0.0.0.0"
