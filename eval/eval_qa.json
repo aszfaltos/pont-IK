@@ -1,10 +1,10 @@
 {
   "qa_list": [
     {
-      "history": [["Milyen érettségi lehet a választottam az elte ik-ra?", "Infó, fizika, vagy még sokféle informatika ismeretköri tárgy."]]
+      "history": [["Milyen érettségi lehet a választottam az elte ik-ra?", "Informatika, fizika, vagy még sokféle informatika ismeretköri tárgy."]]
     },
     {
-      "history": [["Szeretnék duplázni érettségi pontokat, ki tudnád számolni nekem?", "Persze"]]
+      "history": [["Szeretnék duplázni érettségi pontokat, ki tudnád számolni nekem?", "Persze, szükségem lenne a matek illetve választott érettségi eredményeidre, valamint arra, hogy ezek emelt érettségik-e. Ha van nyelvvizsgád, vagy oktv helyezésed azt is írd le kérlek."]]
     }
   ]
 }

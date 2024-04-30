@@ -46,7 +46,6 @@ class RerankQueryEngine:
         return self._retriever.retrieve(query)
 
     def _rerank_nodes(self, query: str, nodes: list[NodeWithScore]) -> list[NodeWithScore]:
-        print(len(nodes))
         if not self.do_rerank:
             max_score_idx = np.argsort(list(map(lambda x: x.score, nodes)))[-self.reranker_top_n:].tolist()
             return [nodes[idx] for idx in max_score_idx]
@@ -66,7 +65,6 @@ class RerankQueryEngine:
         :return: The retrieved nodes and the preprocessed user question according to witch the search was made
         """
         preprocessed_query = self._preprocess_query(history)
-        print(preprocessed_query)
         # nodes_test = self._bm25.retrieve(preprocessed_query)
         # print(len(nodes_test))
         # for n in nodes_test:
