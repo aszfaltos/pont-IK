@@ -107,8 +107,7 @@ def _calc_institution_points(math_final: Tuple[float, bool],
 
     if language_exam == 'B2':
         institution_points = institution_points + 28
-
-    if language_exam == 'C1':
+    elif language_exam == 'C1':
         institution_points = institution_points + 50
 
     if oktv_relevant is not None and oktv_relevant <= 10:

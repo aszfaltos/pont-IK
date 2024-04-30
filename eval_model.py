@@ -4,7 +4,6 @@ from llama_index.core.service_context import ServiceContext
 from llama_index.core.indices import VectorStoreIndex
 from llama_index.vector_stores.weaviate import WeaviateVectorStore
 from llama_index.core.evaluation import CorrectnessEvaluator
-from llama_index.core import Response
 from weaviate.embedded import EmbeddedOptions
 
 import weaviate
@@ -15,18 +14,19 @@ import json
 from chat_engines.controller_chat_engine import ControllerChatEngine
 from tools import RerankQueryEngine, response_synthesizer, point_calc_regular, point_calc_double
 
-import unittest
+import pytest
 import logging
+import time
+import warnings
 
 
-class ChatEngineTests(unittest.TestCase):
+class TestChatEngine:
     @classmethod
-    def setUpClass(cls):
-        super(ChatEngineTests, cls).setUpClass()
-
+    def setup_class(cls):
         load_dotenv()
 
         logging.basicConfig(level=logging.FATAL)
+        warnings.simplefilter('ignore')
 
         llm = LlamaOpenAI(model='gpt-4-turbo')
         embed_model = OpenAIEmbedding(model='text-embedding-3-large')
@@ -50,12 +50,14 @@ class ChatEngineTests(unittest.TestCase):
 
         cls.evaluator = CorrectnessEvaluator(llm=llm)
 
-    def test_correctness(self):
+    def test_correctness(self, subtests):
         with open('./eval/eval_qa.json', 'r') as f:
             qa_list = json.load(f)['qa_list']
             avg_score = 0
+            avg_runtime = 0
             for idx, qa in enumerate(qa_list):
-                with self.subTest(idx=idx):
+                start = time.time()
+                with subtests.test(idx=idx):
                     history = qa['history']
                     ground_truth = history[-1][1]
                     history[-1][1] = None
@@ -66,13 +68,21 @@ class ChatEngineTests(unittest.TestCase):
                     eval_result = self.evaluator.evaluate(query=history[-1][0],
                                                           response=resp,
                                                           reference=ground_truth)
-                    self.assertTrue(eval_result.passing, eval_result.feedback)
 
+                    end = time.time()
                     avg_score += eval_result.score
+                    avg_runtime += end - start
+                    assert eval_result.passing, (f'\n\tQuery: {history[-1][0]}'
+                                                 f'\n\tResponse: {resp}'
+                                                 f'\n\tGround truth: {ground_truth}'
+                                                 f'\n\tFeedback: {eval_result.feedback}'
+                                                 f'\n\tTime: {end - start} seconds')
+                    print(f'\t{idx}. - Time: {end - start} seconds - {"Passed." if eval_result.passing else "Failed."}')
 
             avg_score /= len(qa_list)
-            print('\nAverage eval score ' + str(avg_score))
+            avg_runtime /= len(qa_list)
+            print('\nAverage eval score: ' + str(avg_score) + '\nAverage run time: ' + str(avg_runtime) + 'seconds')
 
 
 if __name__ == '__main__':
-    unittest.main()
+    pytest.main(['-s', __file__])
