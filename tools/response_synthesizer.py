@@ -18,9 +18,8 @@ def response_synthesizer(content: list[dict]) -> str:
         source file if "file" and "page" are not None.
     """
     ret = ''
-    # print(content)
     for piece in content:
-        try:
+        try:  # If the file is None or there is no file just return the text.
             if piece['file'] == 'None':
                 ret += piece['text'] + ' '
                 continue

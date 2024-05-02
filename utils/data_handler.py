@@ -11,14 +11,18 @@ import weaviate
 from dotenv import load_dotenv
 
 
-def fill_db(doc_path: str, embedding_model: str, index_name: str, chunk_size: int, chunk_overlap: int, filters: list):
+def fill_db(doc_path: str, embedding_model: str, index_name: str, chunk_size: int, chunk_overlap: int, local_db: bool,
+            filters: list):
     load_dotenv()
 
     embed_model = OpenAIEmbedding(
         model=embedding_model,
     )
 
-    client = weaviate.Client(url="http://weaviate:8080")
+    if local_db:
+        client = weaviate.Client(embedded_options=EmbeddedOptions())
+    else:
+        client = weaviate.Client(url=os.environ['DB_URL'])
 
     documents = SimpleDirectoryReader(doc_path).load_data()
 
@@ -35,10 +39,13 @@ def fill_db(doc_path: str, embedding_model: str, index_name: str, chunk_size: in
     index.storage_context.persist('embedded/')
 
 
-def empty_db(index_name: str):
+def empty_db(index_name: str, local_db: bool):
     load_dotenv()
 
-    client = weaviate.Client(url="http://weaviate:8080")
+    if local_db:
+        client = weaviate.Client(embedded_options=EmbeddedOptions())
+    else:
+        client = weaviate.Client(url=os.environ['DB_URL'])
 
     cursor = None
     while True:

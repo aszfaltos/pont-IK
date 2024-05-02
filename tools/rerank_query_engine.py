@@ -1,3 +1,6 @@
+import os
+import json
+
 from llama_index.core.indices.vector_store import VectorIndexRetriever
 from llama_index.core.indices import VectorStoreIndex
 from llama_index.core.schema import NodeWithScore
@@ -6,9 +9,7 @@ from InstructorEmbedding import INSTRUCTOR
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
-from utils import ChatHistory, Preprocessor
-
-# spacy stemmer esetleg
+from utils import ChatHistory, QuestionFormer
 
 
 class RerankQueryEngine:
@@ -17,17 +18,28 @@ class RerankQueryEngine:
                  retriever_top_k: int,
                  reranker_top_n: int,
                  rerank: bool,
-                 preprocessor_prompt_path: str):
+                 prompt_path: str,
+                 question_forming_model: str):
+        """
+        :param index: VectorStoreIndex to retrieve data from.
+        :param retriever_top_k: How many documents will be retrieved after a search.
+        :param reranker_top_n: How many documents will remain after reranking.
+        :param rerank: Whether to rerank documents.
+        :param prompt_path: Path to the prompt's directory.
+        :param question_forming_model: Open AI llm model used for question forming before search.
+        """
         self._retriever = VectorIndexRetriever(index, similarity_top_k=retriever_top_k)
-
         self.reranker_top_n = reranker_top_n
         self.do_rerank = rerank
         if self.do_rerank:
             self._reranker = INSTRUCTOR('hkunlp/instructor-large')
-        self._preprocessor_engine = Preprocessor(preprocessor_prompt_path)
+        with open(os.path.join(prompt_path, 'reranker', 'instruct_prompts.json'), 'r') as f:
+            self.reranker_prompts = json.load(f)
+        self._preprocessor_engine = QuestionFormer(os.path.join(prompt_path, 'question_former'), question_forming_model)
 
     def _preprocess_query(self, history: ChatHistory) -> str:
         h = history.get_all_messages()[:-1]
+        # Label the last message of the user according to few shot training. (See question_former prompts)
         h.append({'role': 'user_last', 'content': history.get_last_n_message(1)[0]['content']})
         return self._preprocessor_engine.preprocess_question(h)
 
@@ -35,15 +47,18 @@ class RerankQueryEngine:
         return self._retriever.retrieve(query)
 
     def _rerank_nodes(self, query: str, nodes: list[NodeWithScore]) -> list[NodeWithScore]:
-        if not self.do_rerank:
+        if not self.do_rerank:  # Just return top_n when not using reranker.
             max_score_idx = np.argsort(list(map(lambda x: x.score, nodes)))[-self.reranker_top_n:].tolist()
             return [nodes[idx] for idx in max_score_idx]
 
-        corpus = list(map(lambda x: ['Represent the Hungarian document for retrieval: ', x.node.get_content()], nodes))
-        query = ['Represent the Hungarian question for retrieving hungarian documents: ', query]
+        corpus = list(map(lambda x: [self.reranker_prompts['corpus'], x.node.get_content()], nodes))
+        query = [self.reranker_prompts['query'], query]
         query_embed = self._reranker.encode(query)
         corpus_embed = self._reranker.encode(corpus)
+
         similarities = cosine_similarity(query_embed, corpus_embed)
+        # The first element of similarities is the similarity between the query and the documents,
+        # the second is the similarity between all the documents with each other.
         retrieved_doc_idx = np.argsort(similarities[0])[-self.reranker_top_n:].tolist()
 
         return [nodes[idx] for idx in retrieved_doc_idx]
@@ -60,7 +75,7 @@ class RerankQueryEngine:
         return nodes, preprocessed_query
 
 
-def rag_tool() -> (list[NodeWithScore]):
+def rag_tool() -> (list[NodeWithScore]):  # Just an interface for the engine to interact with.
     """
     Searches for relevant context in the database
     :return: The retrieved context nodes and their source files and pages.

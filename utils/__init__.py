@@ -1,3 +1,3 @@
-__all__ = ['ChatHistory', 'Preprocessor', 'data_handler']
+__all__ = ['ChatHistory', 'QuestionFormer', 'data_handler']
 from .chat_history import ChatHistory
-from .preprocessor import Preprocessor
+from .question_former import QuestionFormer

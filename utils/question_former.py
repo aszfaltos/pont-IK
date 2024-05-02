@@ -3,31 +3,33 @@ import os.path
 from openai import OpenAI
 from dotenv import load_dotenv
 import json
-from os import path
+from typing import Any
 
 
-class Preprocessor:
-    def __init__(self, prompt_path: str):
+class QuestionFormer:
+    def __init__(self, prompt_path: str, model: str):
+        self.model = model
+        self.sections: Any = None
         self.prompt_path = prompt_path
-        self.prompt = Preprocessor._create_prompt(prompt_path)
+        self.prompt = self._create_prompt(prompt_path)
         self.client = OpenAI()
 
-    @staticmethod
-    def _create_prompt(prompt_path):
+    def _create_prompt(self, prompt_path):
         with open(os.path.join(prompt_path, 'examples.json'), 'r') as f:
             d = json.load(f)
-            examples = [Preprocessor._messages_to_string(example) for example in d['examples']]
+            examples = [QuestionFormer._messages_to_string(example) for example in d['examples']]
 
         with open(os.path.join(prompt_path, 'system_message.json'), 'r') as f:
             d = json.load(f)
-            system_message = d['role_description'] + "Here are your tasks:\n"
+            system_message = d['role_description']
+            self.sections = d['section_labels']
             for idx, task in enumerate(d['tasks']):
                 system_message += f'{idx + 1}. {task}\n'
 
         return_char = "\n"
 
-        return f'SYSTEM:\n{system_message}\n' + \
-            f'EXAMPLES:\n{return_char.join(examples)}\n'
+        return f'{self.sections["system"]}:\n{system_message}\n' + \
+               f'{self.sections["examples"]}:\n{return_char.join(examples)}\n'
 
     @staticmethod
     def _message_to_string(message: dict):
@@ -35,13 +37,14 @@ class Preprocessor:
 
     @staticmethod
     def _messages_to_string(messages: list[dict]):
-        return "\n".join([Preprocessor._message_to_string(message) for message in messages])
+        return "\n".join([QuestionFormer._message_to_string(message) for message in messages])
 
     def add_history_to_prompt(self, history: list[dict]):
         return_char = "\n"
         return (self.prompt +
-                f'HISTORY:\n{return_char.join([Preprocessor._message_to_string(message) for message in history])}' +
-                f'\nFORMED:')
+                f'{self.sections["history"]}:\n' +
+                f'{return_char.join([QuestionFormer._message_to_string(message) for message in history])}\n' +
+                f'{self.sections["formed"]}:')
 
     def preprocess_question(self, history: list):
         load_dotenv()
@@ -50,7 +53,7 @@ class Preprocessor:
 
         instruct_completion = self.client.completions.create(
             prompt=prompt,
-            model='gpt-3.5-turbo-instruct',
+            model=model,
             max_tokens=500,
             stop=None
         )

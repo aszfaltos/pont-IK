@@ -16,7 +16,7 @@ def point_calc_regular(math_study: Tuple[float, float],
                        oktv_irrelevant: None | int,
                        ) -> dict:
     """
-    Calculates the university acceptance points for ELTE IK PTI BSc according to the regular point calculation rules.
+    Calculates the university acceptance points for ELTE IK PTI Bsc according to the regular point calculation rules.
 
     :param math_study: The end term grades from the last two studied years in high school in math in an
     ordered pair.
