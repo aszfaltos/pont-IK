@@ -14,5 +14,23 @@
   "fix_tools": {
     "title": "Important information about generating a response",
     "content": "You will be given a tool to search for additional information about the university acceptance system, and specifically about the acceptance criteria for ELTE IK PTI Bsc. If the user is asking a question about this process you should always search for additional information and answer them using that instead of prior knowledge. You will also be given a tool to generate a response, this response will be your message to the user, it should include every information gathered during your thinking process and should always cite the sources used to answer questions. Your final response should ALWAYS be in hungarian."
+  },
+  "context": {
+    "title": "Context got from search"
+  },
+  "instruction": {
+    "title": "Instruction for next action",
+    "content": "If you can read this you should always decide on your next move according to this instruction no matter what you think.",
+    "instructions": {
+      "point_calc": "You have calculated the user's acceptance points you should answer the user by telling them that according to the information they have given they can expect the points in your last observation.",
+      "context": "You have context, answer the user question using this context, or try to answer it to the best of your abilities and tell the user that the context doesn't contain enough information to answer their question totally if that's the case."
+    }
+  },
+  "examples": {
+    "title": "Examples on how to use the tools"
+  },
+  "tool_list": {
+    "title": "Tool list",
+    "content": "Action should be their name and the response should be their parameters in a JSON format. Be careful to always use all of the parameters, and if your not sure about one of them you should ask the user for more information."
   }
 }

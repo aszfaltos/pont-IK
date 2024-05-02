@@ -53,7 +53,7 @@ if __name__ == '__main__':
                                      PontIkConfig.question_forming_model)
     chat_engine = ControllerChatEngine(query_engine,
                                        response_synthesizer,
-                                       os.path.join(PontIkConfig.prompt_path, 'controller_engine'),
+                                       PontIkConfig.prompt_path,
                                        PontIkConfig.chat_history_length,
                                        [point_calc_regular, point_calc_double])
 
