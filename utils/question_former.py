@@ -53,7 +53,7 @@ class QuestionFormer:
 
         instruct_completion = self.client.completions.create(
             prompt=prompt,
-            model=model,
+            model=self.model,
             max_tokens=500,
             stop=None
         )

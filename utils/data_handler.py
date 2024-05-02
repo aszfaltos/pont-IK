@@ -1,7 +1,6 @@
 from llama_index.embeddings.openai import OpenAIEmbedding
 from llama_index.core.indices import VectorStoreIndex
 from llama_index.core.readers import SimpleDirectoryReader
-from llama_index.core.node_parser import SimpleNodeParser
 from llama_index.vector_stores.weaviate import WeaviateVectorStore
 from llama_index.core.storage import StorageContext
 from llama_index.core.node_parser import SentenceSplitter
@@ -9,6 +8,7 @@ from weaviate.embedded import EmbeddedOptions
 
 import weaviate
 from dotenv import load_dotenv
+import os
 
 
 def fill_db(doc_path: str, embedding_model: str, index_name: str, chunk_size: int, chunk_overlap: int, local_db: bool,
@@ -86,6 +86,7 @@ def get_batch_with_cursor(client, collection_name, batch_size, cursor=None):
 
 
 def subject_filter(documents: list) -> list:
+    """Filter out unrelevant parts of ELTE-intezmenyipont-unfiltered.pdf."""
     indexes = []
     for idx, doc in enumerate(documents):
         if not doc.metadata['file_name'].endswith('ELTE-intezmenyipont-unfiltered.pdf') or 'Informatika' in doc.text:
