@@ -10,8 +10,6 @@ from weaviate.embedded import EmbeddedOptions
 import weaviate
 from dotenv import load_dotenv
 
-import argparse
-
 
 def fill_db(doc_path: str, embedding_model: str, index_name: str, chunk_size: int, chunk_overlap: int, filters: list):
     load_dotenv()
@@ -20,7 +18,7 @@ def fill_db(doc_path: str, embedding_model: str, index_name: str, chunk_size: in
         model=embedding_model,
     )
 
-    client = weaviate.Client(embedded_options=EmbeddedOptions())
+    client = weaviate.Client(url="http://weaviate:8080")
 
     documents = SimpleDirectoryReader(doc_path).load_data()
 
@@ -40,7 +38,7 @@ def fill_db(doc_path: str, embedding_model: str, index_name: str, chunk_size: in
 def empty_db(index_name: str):
     load_dotenv()
 
-    client = weaviate.Client(embedded_options=EmbeddedOptions())
+    client = weaviate.Client(url="http://weaviate:8080")
 
     cursor = None
     while True:

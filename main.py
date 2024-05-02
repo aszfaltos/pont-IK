@@ -23,7 +23,7 @@ if __name__ == '__main__':
     llm = LlamaOpenAI(model='gpt-4-turbo')
     embed_model = OpenAIEmbedding(model='text-embedding-3-large')
 
-    client = weaviate.Client(embedded_options=EmbeddedOptions())
+    client = weaviate.Client(url="http://weaviate:8080")
     vector_store = WeaviateVectorStore(weaviate_client=client, index_name="ElteIk", text_key="content")
     service_context = ServiceContext.from_defaults(embed_model=embed_model, llm=llm)
     store_index = VectorStoreIndex.from_vector_store(vector_store, service_context=service_context)
