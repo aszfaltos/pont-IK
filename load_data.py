@@ -9,7 +9,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='Data loader',
                                      description='Use this tool to load your pdf data quickly into the weaviate ' +
                                                  'database for embedding and indexing.')
-    parser.add_argument('-p', '--path', type=str, default='./data', help='Path to data directory.')
+    parser.add_argument('-p', '--path', type=str, default='./data/elte_ik', help='Path to data directory.')
     parser.add_argument('-m', '--model',
                         type=str, default='text-embedding-3-large', help='Open AI embedding model.')
     parser.add_argument('-n', '--name', type=str, default='ElteIk', help='Index name.')

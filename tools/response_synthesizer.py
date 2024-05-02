@@ -29,6 +29,7 @@ def response_synthesizer(content: list[dict]) -> str:
         src = piece['file']
         page_num = piece['page']
         ret += \
-            f'<a class="chat-link" href="/static/{os.path.basename(src)}#page={page_num}">{piece["text"] + " "}</a>'
+            (f'<a class="chat-link" href="/static/elte_ik/{os.path.basename(src)}' +
+             f'#page={page_num}">{piece["text"] + " "}</a>')
 
     return ret.strip()

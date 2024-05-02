@@ -43,7 +43,7 @@ class GradioGUI:
 
     def launch(self):
         app = FastAPI()
-        static_dir = Path('./data/elte_ik')
+        static_dir = Path('./data')
         app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
         inject_js = """async () => {
@@ -70,19 +70,20 @@ class GradioGUI:
         """
 
         with gr.Blocks(css=css) as block:
-            with gr.Row() as row:
-                with gr.Column() as col:
-                    with gr.Row() as row2:
-                        chatbot = gr.Chatbot(elem_id='chatbot', height=600)
-                    with gr.Row() as row2:
-                        msg = gr.Textbox()
-                    with gr.Row() as row2:
+            with gr.Row() as _:
+                with gr.Column() as _:
+                    with gr.Row() as _:
+                        chatbot = gr.Chatbot(label="Pont számító asszisztens", elem_id='chatbot', height=600)
+                    with gr.Row() as _:
+                        msg = gr.Textbox(label="Bemenet",
+                                         placeholder="Kérdezz valamit az ELTE IK felvételi eljárással kapcsolatban!")
+                    with gr.Row() as _:
                         undo = gr.Button(value='Undo')
                         retry = gr.Button(value='Retry')
-                        clear = gr.ClearButton([msg, chatbot], variant='stop')
-                with gr.Column() as col:
-                    document = gr.HTML('<embed height="800" width="700" id="doc" src=""></embed>',
-                                       label='document')
+                        _ = gr.ClearButton([msg, chatbot], variant='stop')
+                with gr.Column() as _:
+                    _ = gr.HTML('<embed height="800" width="700" id="doc" src="/static/placeholder.pdf"></embed>',
+                                label='document')
 
             undo.click(self.undo_click, [chatbot], [chatbot])
             retry.click(self.retry_click, [chatbot], [chatbot])
