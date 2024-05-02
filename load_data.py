@@ -19,8 +19,6 @@ if __name__ == '__main__':
                         type=int, default=200, help='Size of the overlap between context nodes in tokens')
     parser.add_argument('-e', '--empty', action='store_true', help='Use if db already has data')
 
-    # TODO: 200 okenes átfedés, paragrafus és mondat határokon (SentenceSplitter()) 1000-2000 token között
-
     args = parser.parse_args(sys.argv[1:])
 
     if args.empty:

@@ -33,3 +33,6 @@ ENV GIT_HASH=${GIT_HASH:-dev}
 # set up gradio
 EXPOSE 7860
 ENV GRADIO_SERVER_NAME="0.0.0.0"
+
+# set entrypoint
+ENTRYPOINT ["bash"]

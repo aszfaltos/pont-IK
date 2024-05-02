@@ -31,8 +31,7 @@ if __name__ == '__main__':
     query_engine = RerankQueryEngine(store_index,
                                      20,
                                      5,
-                                     False,
-                                     .8,
+                                     True,
                                      './prompts/preprocessor')
     chat_engine = ControllerChatEngine(query_engine,
                                        response_synthesizer,
