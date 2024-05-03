@@ -20,7 +20,7 @@ def response_synthesizer(content: list[dict]) -> str:
     ret = ''
     for piece in content:
         try:  # If the file is None or there is no file just return the text.
-            if piece['file'] == 'None':
+            if piece['file'] is None or piece['file'] == 'None':
                 ret += piece['text'] + ' '
                 continue
         except KeyError:
@@ -30,6 +30,49 @@ def response_synthesizer(content: list[dict]) -> str:
         page_num = piece['page']
         ret += \
             (f'<a class="chat-link" href="/static/elte_ik/{os.path.basename(src)}' +
-             f'#page={page_num}">{piece["text"] + " "}</a>')
+             f'#page={page_num}">{piece["text"]} </a>')
 
     return ret.strip()
+
+
+def test_rs_none_source():
+    content = [{"text": "Segment 1", "file": None, "page": None}]
+    resp = response_synthesizer(content)
+    assert resp == 'Segment 1'
+
+
+def test_rs_none_string_source():
+    content = [{"text": "Segment 1", "file": "None", "page": "None"}]
+    resp = response_synthesizer(content)
+    assert resp == 'Segment 1'
+
+
+def test_rs_no_source():
+    content = [{"text": "Segment 1"}]
+    resp = response_synthesizer(content)
+    assert resp == 'Segment 1'
+
+
+def test_rs_with_source():
+    content = [{"text": "Segment 1", "file": "data/elte_ik/test.pdf", "page": 13}]
+    resp = response_synthesizer(content)
+    assert resp == '<a class="chat-link" href="/static/elte_ik/test.pdf#page=13">Segment 1 </a>'
+
+
+def test_rs_with_source_string_page():
+    content = [{"text": "Segment 1", "file": "data/elte_ik/test.pdf", "page": "13"}]
+    resp = response_synthesizer(content)
+    assert resp == '<a class="chat-link" href="/static/elte_ik/test.pdf#page=13">Segment 1 </a>'
+
+
+def test_rs_multiple_segments():
+    content = [
+        {"text": "Segment 1", "file": "data/elte_ik/test.pdf", "page": "13"},
+        {"text": "Segment 2", "file": "data/elte_ik/test.pdf", "page": "12"},
+        {"text": "Segment 3", "file": None, "page": None},
+        {"text": "Segment 4", "file": None, "page": None},
+    ]
+    resp = response_synthesizer(content)
+    assert resp == ('<a class="chat-link" href="/static/elte_ik/test.pdf#page=13">Segment 1 </a>'
+                    '<a class="chat-link" href="/static/elte_ik/test.pdf#page=12">Segment 2 </a>'
+                    'Segment 3 Segment 4')

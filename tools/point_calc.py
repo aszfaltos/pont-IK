@@ -121,3 +121,154 @@ def _calc_institution_points(math_final: Tuple[float, bool],
         institution_points = institution_points + 20
 
     return min(100, institution_points)
+
+
+def test_i_raised_bad():
+    math_final = (44, True)
+    chosen_final = (44, True)
+    points = _calc_institution_points(math_final, chosen_final, None, None, None)
+    assert points == 0
+
+
+def test_i_raised_good():
+    math_final = (45, True)
+    chosen_final = (70, False)
+    points = _calc_institution_points(math_final, chosen_final, None, None, None)
+    assert points == 50
+
+
+def test_i_language_b2():
+    math_final = (45, False)
+    chosen_final = (70, False)
+    language_exam = 'B2'
+    points = _calc_institution_points(math_final, chosen_final, language_exam, None, None)
+    assert points == 28
+
+
+def test_i_language_c1():
+    math_final = (45, False)
+    chosen_final = (70, False)
+    language_exam = 'C1'
+    points = _calc_institution_points(math_final, chosen_final, language_exam, None, None)
+    assert points == 50
+
+
+def test_i_oktv_relevant1():
+    math_final = (45, False)
+    chosen_final = (70, False)
+    oktv_relevant = 10
+    points = _calc_institution_points(math_final, chosen_final, None, oktv_relevant, None)
+    assert points == 100
+
+
+def test_i_oktv_relevant2():
+    math_final = (45, False)
+    chosen_final = (70, False)
+    oktv_relevant = 20
+    points = _calc_institution_points(math_final, chosen_final, None, oktv_relevant, None)
+    assert points == 50
+
+
+def test_i_oktv_relevant3():
+    math_final = (45, False)
+    chosen_final = (70, False)
+    oktv_relevant = 30
+    points = _calc_institution_points(math_final, chosen_final, None, oktv_relevant, None)
+    assert points == 25
+
+
+def test_i_oktv_relevant4():
+    math_final = (45, False)
+    chosen_final = (70, False)
+    oktv_relevant = 31
+    points = _calc_institution_points(math_final, chosen_final, None, oktv_relevant, None)
+    assert points == 0
+
+
+def test_i_oktv_irrelevant1():
+    math_final = (45, False)
+    chosen_final = (70, False)
+    oktv_irrelevant = 10
+    points = _calc_institution_points(math_final, chosen_final, None, None, oktv_irrelevant)
+    assert points == 20
+
+
+def test_i_oktv_irrelevant2():
+    math_final = (45, False)
+    chosen_final = (70, False)
+    oktv_irrelevant = 11
+    points = _calc_institution_points(math_final, chosen_final, None, None, oktv_irrelevant)
+    assert points == 0
+
+
+def test_i_overflow():
+    math_final = (45, True)
+    chosen_final = (70, True)
+    language_exam = 'C1'
+    points = _calc_institution_points(math_final, chosen_final, language_exam, None, None)
+    assert points == 100
+
+
+def test_r_raised():
+    math_final = (44, True)
+    chosen_final = (44, True)
+    hungarian_final = (44, True)
+    language_final = (44, True)
+    history_final = (44, True)
+    math_study = (0, 0)
+    chosen_study = (0, 0)
+    hungarian_study = (0, 0)
+    history_study = (0, 0)
+    language_study = (0, 0)
+    points = point_calc_regular(math_study, hungarian_study, history_study, language_study, chosen_study,
+                                math_final, hungarian_final, history_final, language_final, chosen_final,
+                                None, None, None)
+    assert points['expected_points'] == 132
+
+
+def test_r_normal():
+    math_final = (44, False)
+    chosen_final = (44, False)
+    hungarian_final = (44, True)
+    language_final = (44, True)
+    history_final = (44, True)
+    math_study = (0, 0)
+    chosen_study = (0, 0)
+    hungarian_study = (0, 0)
+    history_study = (0, 0)
+    language_study = (0, 0)
+    points = point_calc_regular(math_study, hungarian_study, history_study, language_study, chosen_study,
+                                math_final, hungarian_final, history_final, language_final, chosen_final,
+                                None, None, None)
+    assert points['expected_points'] == 103
+
+
+def test_r_study():
+    math_final = (0, False)
+    chosen_final = (0, False)
+    hungarian_final = (0, True)
+    language_final = (0, True)
+    history_final = (0, True)
+    math_study = (4, 4)
+    chosen_study = (4, 4)
+    hungarian_study = (4, 3)
+    history_study = (3, 3)
+    language_study = (3, 3)
+    points = point_calc_regular(math_study, hungarian_study, history_study, language_study, chosen_study,
+                                math_final, hungarian_final, history_final, language_final, chosen_final,
+                                None, None, None)
+    assert points['expected_points'] == 70
+
+
+def test_d_raised():
+    math_final = (44, True)
+    chosen_final = (44, True)
+    points = point_calc_double(math_final, chosen_final, None, None, None)
+    assert points['expected_points'] == 176
+
+
+def test_d_normal():
+    math_final = (44, False)
+    chosen_final = (44, False)
+    points = point_calc_double(math_final, chosen_final, None, None, None)
+    assert points['expected_points'] == 118
