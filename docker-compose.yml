@@ -29,5 +29,7 @@ services:
     image: chatbot:latest
     ports:
       - "7860:7860"
+    environment:
+      DB_URL: "http://weaviate:8080"
 volumes:
   weaviate_data:

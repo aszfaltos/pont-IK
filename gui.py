@@ -13,7 +13,6 @@ class GradioGUI:
     def bot_submit(self, history):
         if len(history) == 0:
             return
-        print(history)
         self.chat_engine.reload_history(history)
         resp, _, thinking = self.chat_engine.chat()
         history[-1][1] = self.format_response(resp, thinking)

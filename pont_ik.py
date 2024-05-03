@@ -26,7 +26,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='ELTE IK assistant chatbot',
                                      description='This program will try to connect to a Weaviate database and run an ' +
                                                  'assistant chatbot with a Gradio frontend.')
-    parser.add_argument('-e', '--embed', action='store_true', help='Use this to use Weaviate embedded version')
+    parser.add_argument('-l', '--local', action='store_true', help='Use this to use Weaviate embedded version')
 
     args = parser.parse_args(sys.argv[1:])
 
@@ -35,7 +35,7 @@ if __name__ == '__main__':
     llm = LlamaOpenAI(model='gpt-4-turbo')
     embed_model = OpenAIEmbedding(model='text-embedding-3-large')
 
-    if args.embed:
+    if args.local:
         client = weaviate.Client(embedded_options=EmbeddedOptions())
     else:
         client = weaviate.Client(url=os.environ['DB_URL'])

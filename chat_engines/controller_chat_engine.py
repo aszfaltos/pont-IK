@@ -102,26 +102,24 @@ class ControllerChatEngine:
                      'file': node.node.metadata['file_name'], 'page': node.node.metadata['page_label']}
                     for idx, node in enumerate(nodes)]}
 
-                instruction = self.sys_prompt_dict["context"]["instructions"]["context"]
+                instruction = self.sys_prompt_dict["instruction"]["instructions"]["context"]
 
             elif resp_dict[-1]['action'] in [tool.metadata.name for tool in self._other_tools]:
                 tool = list(filter(lambda tool: resp_dict[-1]['action'] == tool.metadata.name, self._other_tools))[0]
                 observation = str(tool.call(**resp_dict[-1]['response']).content)
                 if resp_dict[-1]['action'] == 'point_calc_regular' or resp_dict[-1]['action'] == 'point_calc_double':
-                    instruction = self.sys_prompt_dict["context"]["instructions"]["point_calc"]
+                    instruction = self.sys_prompt_dict["instruction"]["instructions"]["point_calc"]
 
             elif resp_dict[-1]['action'] == 'response_synthesizer':
                 observation = self._response_tool.call(**resp_dict[-1]['response']).content
                 return observation, nodes, resp_dict
 
             else:
-                # TODO: throw invalid action
-                break
+                raise Exception("Invalid model action. Try again!")
 
             resp_dict[-1]['observation'] = observation
 
-        # TODO: throw limit exceeded
-        print("Limit exceeded or invalid action.")
+        raise Exception("Control loop iteration exceeded. Try again!")
 
     @staticmethod
     def _prompt_from_func_tool(func_tool: FunctionTool) -> str:
