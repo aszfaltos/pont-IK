@@ -47,10 +47,11 @@ class TestChatEngine:
                                          20,
                                          5,
                                          False,
-                                         './prompts')
+                                         './prompts',
+                                         'gpt-3.5-turbo-instruct')
         cls.chat_engine = ControllerChatEngine(query_engine,
                                                response_synthesizer,
-                                               './prompts/controller_engine',
+                                               './prompts',
                                                15,
                                                [point_calc_regular, point_calc_double])
 
