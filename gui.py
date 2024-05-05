@@ -25,9 +25,13 @@ class GradioGUI:
 
     @staticmethod
     def undo_click(history):
+        if len(history) == 0:
+            return []
         return history[:-1]
 
     def retry_click(self, history):
+        if len(history) == 0:
+            return []
         history[-1][1] = None
         history = self.bot_submit(history)
         return history
