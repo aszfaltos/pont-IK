@@ -11,9 +11,6 @@ services:
     image: semitechnologies/weaviate:1.24.1
     ports:
       - "8080:8080"
-      - "8079:8079"
-      - "50051:50051"
-      - "50050:50050"
     volumes:
       - weaviate_data:/var/lib/weaviate
     restart: on-failure
@@ -33,3 +30,5 @@ services:
       DB_URL: "http://weaviate:8080"
 volumes:
   weaviate_data:
+
+# TODO: pydef vagy doxigen sphinx - generálj objektum level doksit

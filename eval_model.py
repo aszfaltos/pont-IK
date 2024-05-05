@@ -88,7 +88,7 @@ class TestChatEngine:
 
             avg_score /= len(qa_list)
             avg_runtime /= len(qa_list)
-            print('\nAverage eval score: ' + str(avg_score) + '\nAverage run time: ' + str(avg_runtime) + 'seconds')
+            print('\nAverage eval score: ' + str(avg_score) + '\nAverage run time: ' + str(avg_runtime) + ' seconds')
 
 
 if __name__ == '__main__':
