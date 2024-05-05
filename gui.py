@@ -81,9 +81,9 @@ class GradioGUI:
                         msg = gr.Textbox(label="Bemenet",
                                          placeholder="Kérdezz valamit az ELTE IK felvételi eljárással kapcsolatban!")
                     with gr.Row() as _:
-                        undo = gr.Button(value='Undo')
-                        retry = gr.Button(value='Retry')
-                        _ = gr.ClearButton([msg, chatbot], variant='stop')
+                        undo = gr.Button(value='Vissza')
+                        retry = gr.Button(value='Újra')
+                        _ = gr.ClearButton([msg, chatbot], variant='stop', value='Törlés')
                 with gr.Column() as _:
                     _ = gr.HTML('<embed height="800" width="700" id="doc" src="/static/placeholder.pdf"></embed>',
                                 label='document')
