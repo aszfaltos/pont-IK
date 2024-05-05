@@ -18,8 +18,8 @@ USER user
 RUN pip install --upgrade pip setuptools wheel
 
 # install requirements
-COPY requirements_docker.txt .
-RUN pip install -r requirements_docker.txt
+COPY requirements.txt .
+RUN pip install -r requirements.txt
 
 # copy project
 COPY . .
