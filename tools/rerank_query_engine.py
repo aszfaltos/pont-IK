@@ -38,7 +38,7 @@ class RerankQueryEngine:
         self._preprocessor_engine = QuestionFormer(os.path.join(prompt_path, 'question_former'), question_forming_model)
 
     def _preprocess_query(self, history: ChatHistory) -> str:
-        h = history.get_all_messages()[:-1]
+        h = history.get_last_n_message(5)[:-1]  # limit history to fit in context length
         # Label the last message of the user according to few shot training. (See question_former prompts)
         h.append({'role': 'user_last', 'content': history.get_last_n_message(1)[0]['content']})
         return self._preprocessor_engine.preprocess_question(h)
