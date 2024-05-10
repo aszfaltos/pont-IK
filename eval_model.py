@@ -21,6 +21,7 @@ import warnings
 import os
 
 
+# If you want to use the embedded database, set the USE_EMBEDDED_DATABASE to True
 USE_EMBEDDED_DATABASE = True
 
 
