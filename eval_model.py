@@ -25,8 +25,15 @@ USE_EMBEDDED_DATABASE = True
 
 
 class TestChatEngine:
+    """
+    A class to test the responses of the chat engine.
+    """
     @classmethod
     def setup_class(cls):
+        """
+        Load the necessary tools and models for the chat engine.
+        Create the chat engine, the query engine and the evaluator.
+        """
         load_dotenv()
 
         logging.basicConfig(level=logging.FATAL)
@@ -58,6 +65,10 @@ class TestChatEngine:
         cls.evaluator = CorrectnessEvaluator(llm=llm)
 
     def test_correctness(self, subtests):
+        """
+        Run the chat engine with the query-response pairs from the eval_qa.json file
+        and check the correctness of the engine's responses against the example response from the file.
+        """
         with open('./eval/eval_qa.json', 'r') as f:
             qa_list = json.load(f)['qa_list']
             avg_score = 0

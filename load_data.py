@@ -6,6 +6,10 @@ import argparse
 
 
 if __name__ == '__main__':
+    """
+    Main entry point for the data loader.
+    This program will load the data from the specified path into the Weaviate database.
+    """
     parser = argparse.ArgumentParser(prog='Data loader',
                                      description='Use this tool to load your pdf data quickly into the weaviate ' +
                                                  'database for embedding and indexing.')

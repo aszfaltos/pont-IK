@@ -23,6 +23,10 @@ dir_ = Path(__file__).parent
 
 
 if __name__ == '__main__':
+    """
+    Main entry point for the ELTE IK assistant chatbot.
+    This program will connect to a Weaviate database and run an assistant chatbot with a Gradio frontend.
+    """
     parser = argparse.ArgumentParser(prog='ELTE IK assistant chatbot',
                                      description='This program will try to connect to a Weaviate database and run an ' +
                                                  'assistant chatbot with a Gradio frontend.')

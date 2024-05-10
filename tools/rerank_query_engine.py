@@ -13,6 +13,9 @@ from utils import ChatHistory, QuestionFormer
 
 
 class RerankQueryEngine:
+    """
+    A class to handle the search process of the chat engine.
+    """
     def __init__(self,
                  index: VectorStoreIndex,
                  retriever_top_k: int,
@@ -38,15 +41,31 @@ class RerankQueryEngine:
         self._preprocessor_engine = QuestionFormer(os.path.join(prompt_path, 'question_former'), question_forming_model)
 
     def _preprocess_query(self, history: ChatHistory) -> str:
+        """
+        Preprocesses the user question before searching, for a better query.
+        :param history: The chat history of the user and the assistant.
+        :return: The preprocessed user question.
+        """
         h = history.get_last_n_message(5)[:-1]  # limit history to fit in context length
         # Label the last message of the user according to few shot training. (See question_former prompts)
         h.append({'role': 'user_last', 'content': history.get_last_n_message(1)[0]['content']})
         return self._preprocessor_engine.preprocess_question(h)
 
     def _query_index(self, query: str) -> list[NodeWithScore]:
+        """
+        Retrieves the documents from the index, based on the query.
+        :param query: The preprocessed user question.
+        :return: The relevant document nodes.
+        """
         return self._retriever.retrieve(query)
 
     def _rerank_nodes(self, query: str, nodes: list[NodeWithScore]) -> list[NodeWithScore]:
+        """
+        Reranks the document nodes based on the query.
+        :param query: The preprocessed user question.
+        :param nodes: The retrieved document nodes.
+        :return: The top re ranked document nodes.
+        """
         if not self.do_rerank:  # Just return top_n when not using reranker.
             max_score_idx = np.argsort(list(map(lambda x: x.score, nodes)))[-self.reranker_top_n:].tolist()
             return [nodes[idx] for idx in max_score_idx]

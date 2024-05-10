@@ -13,6 +13,16 @@ import os
 
 def fill_db(doc_path: str, embedding_model: str, index_name: str, chunk_size: int, chunk_overlap: int, local_db: bool,
             filters: list):
+    """
+    Fill the Weaviate database with the documents from the specified path.
+    :param doc_path: The path to the documents.
+    :param embedding_model: The OpenAI embedding model to use.
+    :param index_name: The name of the database index.
+    :param chunk_size: The size of one context node in tokens.
+    :param chunk_overlap: The size of the overlap between context nodes in tokens.
+    :param local_db: If True, use the embedded Weaviate database.
+    :param filters: The list of filters to apply to the document nodes.
+    """
     load_dotenv()
 
     embed_model = OpenAIEmbedding(
@@ -40,6 +50,11 @@ def fill_db(doc_path: str, embedding_model: str, index_name: str, chunk_size: in
 
 
 def empty_db(index_name: str, local_db: bool):
+    """
+    Empty the Weaviate database.
+    :param index_name: The name of the database index to empty.
+    :param local_db: If True, use the embedded Weaviate database.
+    """
     load_dotenv()
 
     if local_db:
@@ -65,6 +80,14 @@ def empty_db(index_name: str, local_db: bool):
 
 
 def get_batch_with_cursor(client, collection_name, batch_size, cursor=None):
+    """
+    Get a batch of objects from the Weaviate database.
+    :param client: Weaviate client.
+    :param collection_name: Name of the collection to get objects from.
+    :param batch_size: The size of the batches to work with.
+    :param cursor: The cursor to use for pagination.
+    :return: The collected objects.
+    """
     # First prepare the query to run through data
     query = (
         client.query.get(
@@ -86,7 +109,11 @@ def get_batch_with_cursor(client, collection_name, batch_size, cursor=None):
 
 
 def subject_filter(documents: list) -> list:
-    """Filter out unrelevant parts of ELTE-intezmenyipont-unfiltered.pdf."""
+    """
+    Filter out unrelevant parts of ELTE-intezmenyipont-unfiltered.pdf.
+    :param documents: The list of documents to filter.
+    :return: The filtered list of documents.
+    """
     indexes = []
     for idx, doc in enumerate(documents):
         if not doc.metadata['file_name'].endswith('ELTE-intezmenyipont-unfiltered.pdf') or 'Informatika' in doc.text:

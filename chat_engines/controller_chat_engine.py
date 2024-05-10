@@ -43,20 +43,39 @@ class ControllerChatEngine:
                                                           point_calc_example['examples'])
 
     def reload_history(self, gradio_history: list[list[str]]):
-        """Given a Gradio history list recreates the whole chat history from it."""
+        """
+        Reloads the chat history from a gradio context.
+        :param gradio_history: A list of messages in the format of gradio context.
+        """
         self._history = ChatHistory.from_gradio_context(gradio_history, self.max_history_length)
 
     def push_history(self, role: str, prompt: str):
+        """
+        Adds a message to the chat history.
+        :param role: Role of the message.
+        :param prompt: Content of the message.
+        """
         self._history.add_message(role, prompt)
 
     def pop_history(self):
+        """
+        Removes the last message from the chat history.
+        """
         self._history.remove_message(-1)
 
     def get_history(self):
+        """
+        Returns the chat history.
+        :return: The chat history.
+        """
         return self._history
 
     def chat(self):
-        """Generates a response according to the current chat history."""
+        """
+        Generates a response according to the current chat history.
+        :return: The generated response, the context nodes used in the response and the thinking process of the llm
+        as a dictionary.
+        """
         context = {}
 
         history = [{'role': 'system', 'content': self.system_prompt}] + self._history.get_all_messages()
@@ -123,12 +142,23 @@ class ControllerChatEngine:
 
     @staticmethod
     def _prompt_from_func_tool(func_tool: FunctionTool) -> str:
+        """
+        Generates a prompt from a function tool metadata.
+        :param func_tool: The function tool to generate the prompt from.
+        :return: The generated prompt.
+        """
         desc_split = func_tool.metadata.description.split('\n')
         func_desc = desc_split[0]
         desc = '\n'.join(desc_split[1:])
         return f'- name: {func_tool.metadata.name}\n- function_descriptor: {func_desc}\n- description: {desc}\n'
 
     def _generate_system_prompt(self, system_prompt: dict, examples: list[dict]) -> str:
+        """
+        Generates the system prompt from the system prompt dictionary and the examples.
+        :param system_prompt: The system prompt dictionary.
+        :param examples: Examples to include in the prompt.
+        :return: The generated system prompt.
+        """
         ret = f'# {system_prompt["task_description"]["title"]}\n' + system_prompt['task_description']['content'] + '\n'
         ret += (f'# {system_prompt["general_tool_description"]["title"]}\n' +
                 system_prompt['general_tool_description']['content'] + '\n')
