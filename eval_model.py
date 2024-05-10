@@ -14,11 +14,11 @@ import json
 from chat_engines.controller_chat_engine import ControllerChatEngine
 from tools import RerankQueryEngine, response_synthesizer, point_calc_regular, point_calc_double
 
-import pytest
 import logging
 import time
 import warnings
 import os
+import subprocess
 
 
 # If you want to use the embedded database, set the USE_EMBEDDED_DATABASE to True
@@ -104,4 +104,4 @@ class TestChatEngine:
 
 
 if __name__ == '__main__':
-    pytest.main(['-s', __file__])
+    subprocess.call(['pytest', '-s', str(__file__)])
