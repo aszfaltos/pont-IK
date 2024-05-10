@@ -46,7 +46,7 @@ class RerankQueryEngine:
         :param history: The chat history of the user and the assistant.
         :return: The preprocessed user question.
         """
-        h = history.get_last_n_message(5)[:-1]  # limit history to fit in context length
+        h = history.get_all_messages()[1:-1]  # remove system message to fit in context length
         # Label the last message of the user according to few shot training. (See question_former prompts)
         h.append({'role': 'user_last', 'content': history.get_last_n_message(1)[0]['content']})
         return self._preprocessor_engine.preprocess_question(h)
