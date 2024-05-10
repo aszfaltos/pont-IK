@@ -64,7 +64,8 @@ class RerankQueryEngine:
         return [nodes[idx] for idx in retrieved_doc_idx]
 
     def query(self, history: ChatHistory) -> (list[NodeWithScore], str):
-        """Searches for relevant context in the database
+        """
+        Searches for relevant context in the database
         :param history: The chat history of the user and the assistant
         :return: The retrieved nodes and the preprocessed user question according to witch the search was made
         """
