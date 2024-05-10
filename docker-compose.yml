@@ -23,6 +23,7 @@ services:
   pont-IK:
     tty: true
     image: chatbot:latest
+    build: ./
     ports:
       - "7860:7860"
     environment:

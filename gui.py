@@ -7,10 +7,21 @@ from pathlib import Path
 
 
 class GradioGUI:
+    """
+    A class to handle the gradio GUI.
+    """
     def __init__(self, chat_engine: ControllerChatEngine):
+        """
+        :param chat_engine: The chat engine to use when messages are sent.
+        """
         self.chat_engine = chat_engine
 
     def bot_submit(self, history):
+        """
+        Submits the user message to the chat engine and gets the response.
+        :param history: The chat history in the format of gradio context.
+        :return: The chat history updated with the response.
+        """
         if len(history) == 0:
             return
         self.chat_engine.reload_history(history)
@@ -21,15 +32,31 @@ class GradioGUI:
 
     @staticmethod
     def user_submit(user_message, history):
+        """
+        Adds the user message to the chat history.
+        :param user_message: The last message of the user from the input textbox.
+        :param history: The previous chat history in the format of gradio context.
+        :return: Empty string for the input textbox and the chat history updated with the user message.
+        """
         return "", history + [[user_message, None]]
 
     @staticmethod
     def undo_click(history):
+        """
+        Removes the last message from the chat history.
+        :param history: Chat history in the format of gradio context.
+        :return: Updated chat history without the last user-assistant message pair.
+        """
         if len(history) == 0:
             return []
         return history[:-1]
 
     def retry_click(self, history):
+        """
+        Removes the chat engine's last response and submits the chat history to the chat engine again.
+        :param history: Chat history in the format of gradio context.
+        :return: Updated chat history without the last assistant message and the new response from the chat engine.
+        """
         if len(history) == 0:
             return []
         history[-1][1] = None
@@ -38,6 +65,12 @@ class GradioGUI:
 
     @staticmethod
     def format_response(response: str, thinking: list[dict]):
+        """
+        Formats the response of the chat engine with the thinking process.
+        :param response: The response of the chat engine.
+        :param thinking: The thinking process of the chat engine.
+        :return: The formatted markdown response.
+        """
         return ('<details>\n<summary>A gondolatmenetem</summary>\n<br>\n' +
                 '<ul>' +
                 '\n---\n'.join(['\n'.join([f'<li><strong>{key}: </strong>{value}</li>'
@@ -45,6 +78,9 @@ class GradioGUI:
                 '</ul></details>\n\n' + response)
 
     def launch(self):
+        """
+        Defines the gradio GUI and launches the FastAPI server.
+        """
         app = FastAPI()
         static_dir = Path('./data')
         app.mount("/static", StaticFiles(directory=static_dir), name="static")

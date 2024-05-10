@@ -4,11 +4,23 @@ import pytest
 
 
 class ChatHistory:
+    """
+    A class to store chat history.
+    """
     def __init__(self):
+        """
+        Initialize the chat history.
+        """
         self._history: list[dict] = []
 
     @staticmethod
     def from_gradio_context(ctx: list[list[str]], max_history: int):
+        """
+        Create a ChatHistory object from a Gradio context.
+        :param ctx: Context in the format of Gradio context.
+        :param max_history: The maximum number of messages to keep.
+        :return: The ChatHistory object.
+        """
         ret = ChatHistory()
 
         look_back = min(math.ceil(max_history / 2), len(ctx))
@@ -22,21 +34,42 @@ class ChatHistory:
         return ret
 
     def add_message(self, role: str, message: str):
+        """
+        Add a message to the chat history.
+        :param role: Message sender role.
+        :param message: Content of the message.
+        """
         self._history.append({'role': role, 'content': message})
 
     def remove_message(self, index: int):
+        """
+        Remove a message from the chat history.
+        :param index: The index of the message to remove.
+        """
         self._history.remove(self._history[index])
 
     def get_all_messages(self):
+        """
+        Get all messages in the chat history.
+        :return: History of messages.
+        """
         return self._history
 
     def get_last_n_message(self, n: int):
+        """
+        Get the last n messages in the chat history.
+        :param n: The number of messages to get.
+        :return: The last n messages.
+        """
         n = min(len(self._history), n)
         if n == 0:
             return []
         return self._history[-n:]
 
     def clear(self):
+        """
+        Clear the chat history.
+        """
         self._history = []
 
 

@@ -3,6 +3,7 @@ from dataclasses import dataclass
 
 @dataclass
 class PontIkConfig:
+    """Configuration for the ELTE IK assistant chatbot."""
     prompt_path: str = './prompts'
     db_index_name: str = 'ElteIk'
     embedding_model: str = 'text-embedding-3-large'

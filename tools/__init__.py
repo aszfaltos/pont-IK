@@ -1,3 +1,6 @@
+"""
+This module is a collection of tools used by the chat engine.
+"""
 __all__ = ['RerankQueryEngine', 'point_calc_regular', 'point_calc_double', 'response_synthesizer', 'rag_tool']
 from .rerank_query_engine import RerankQueryEngine, rag_tool
 from .point_calc import point_calc_regular, point_calc_double
