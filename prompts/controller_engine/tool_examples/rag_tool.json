@@ -16,7 +16,7 @@
       "previous_iterations": [
         {
           "thought": "Plusz információra van szükségem a kérdés megválaszolásához.",
-          "reason": "A felhasználó a felvételi eljárásról kérdezett, és a válasz információtartalmának pontosságaérdekében érdemes a dokumentumokban keresni. Ehhez nincs szükségem további információra a felhasználótól.",
+          "reason": "A felhasználó a felvételi eljárásról kérdezett, és a válasz információtartalmának pontossága érdekében érdemes a dokumentumokban keresni. Ehhez nincs szükségem további információra a felhasználótól.",
           "action": "rag_tool",
           "response": {},
           "observation": {
