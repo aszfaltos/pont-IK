@@ -22,14 +22,16 @@ class RerankQueryEngine:
                  reranker_top_n: int,
                  rerank: bool,
                  prompt_path: str,
-                 question_forming_model: str):
+                 question_forming_model: str,
+                 question_forming_tokenizer: str):
         """
         :param index: VectorStoreIndex to retrieve data from.
         :param retriever_top_k: How many documents will be retrieved after a search.
         :param reranker_top_n: How many documents will remain after reranking.
         :param rerank: Whether to rerank documents.
         :param prompt_path: Path to the prompt's directory.
-        :param question_forming_model: Open AI llm model used for question forming before search.
+        :param question_forming_model: OpenAI llm model used for question forming before search.
+        :param question_forming_tokenizer: OpenAI tokenizer used by the question forming model.
         """
         self._retriever = VectorIndexRetriever(index, similarity_top_k=retriever_top_k)
         self.reranker_top_n = reranker_top_n
@@ -38,7 +40,8 @@ class RerankQueryEngine:
             self._reranker = INSTRUCTOR('hkunlp/instructor-large')
         with open(os.path.join(prompt_path, 'reranker', 'instruct_prompts.json'), 'r') as f:
             self.reranker_prompts = json.load(f)
-        self._preprocessor_engine = QuestionFormer(os.path.join(prompt_path, 'question_former'), question_forming_model)
+        self._preprocessor_engine = QuestionFormer(os.path.join(prompt_path, 'question_former'), question_forming_model,
+                                                   question_forming_tokenizer)
 
     def _preprocess_query(self, history: ChatHistory) -> str:
         """

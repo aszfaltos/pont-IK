@@ -10,7 +10,7 @@ if __name__ == '__main__':
     Main entry point for the data loader.
     This program will load the data from the specified path into the Weaviate database.
     """
-    parser = argparse.ArgumentParser(prog='Data loader',
+    parser = argparse.ArgumentParser(prog='load_data.py',
                                      description='Use this tool to load your pdf data quickly into the weaviate ' +
                                                  'database for embedding and indexing.')
     parser.add_argument('-p', '--path', type=str, default='./data/elte_ik', help='Path to data directory.')

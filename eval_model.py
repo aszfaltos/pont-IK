@@ -56,7 +56,8 @@ class TestChatEngine:
                                          5,
                                          False,
                                          './prompts',
-                                         'gpt-3.5-turbo-instruct')
+                                         'gpt-3.5-turbo-instruct',
+                                         'cl100k_base')
         cls.chat_engine = ControllerChatEngine(query_engine,
                                                response_synthesizer,
                                                './prompts',

@@ -54,7 +54,8 @@ if __name__ == '__main__':
                                      PontIkConfig.reranker_top_n,
                                      PontIkConfig.do_rerank,
                                      PontIkConfig.prompt_path,
-                                     PontIkConfig.question_forming_model)
+                                     PontIkConfig.question_forming_model,
+                                     PontIkConfig.question_forming_tokenizer)
     chat_engine = ControllerChatEngine(query_engine,
                                        response_synthesizer,
                                        PontIkConfig.prompt_path,

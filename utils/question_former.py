@@ -1,6 +1,7 @@
 import os.path
 
 from openai import OpenAI
+import tiktoken
 from dotenv import load_dotenv
 import json
 from typing import Any
@@ -10,17 +11,19 @@ class QuestionFormer:
     """
     This class is responsible for forming query questions from the chat history.
     """
-    def __init__(self, prompt_path: str, model: str):
+    def __init__(self, prompt_path: str, model: str, tokenizer: str):
         """
         Initialize the QuestionFormer object.
         :param prompt_path: The path to the directory containing the prompt files.
         :param model: The OpenAI model to use.
+        :param tokenizer: The OpenAI tokenizer that the model uses.
         """
         self.model = model
         self.sections: Any = None
         self.prompt_path = prompt_path
         self.prompt = self._create_prompt(prompt_path)
         self.client = OpenAI()
+        self.encoding = tiktoken.get_encoding(tokenizer)
 
     def _create_prompt(self, prompt_path):
         """
@@ -69,9 +72,13 @@ class QuestionFormer:
         :return: The prompt with the chat history.
         """
         return_char = "\n"
+        history_str = return_char.join([QuestionFormer._message_to_string(message) for message in history])
+        if len(self.encoding.encode(history_str)) > 2000:
+            # 2000 characters won't be longer than 2000 tokens, but should be enough for generation.
+            history_str = history_str[:2000]
         return (self.prompt +
                 f'{self.sections["history"]}:\n' +
-                f'{return_char.join([QuestionFormer._message_to_string(message) for message in history])}\n' +
+                f'{history_str}\n' +
                 f'{self.sections["formed"]}:')
 
     def preprocess_question(self, history: list):
@@ -92,3 +99,17 @@ class QuestionFormer:
         )
 
         return instruct_completion.choices[0].text
+
+
+def test_question_former_token_limit():
+    load_dotenv()
+
+    qf = QuestionFormer('../prompts/question_former', 'gpt-3.5-turbo-instruct', 'cl100k_base')
+    tokenizer = tiktoken.get_encoding('cl100k_base')
+    history = [{'role': 'user_last', 'content': 'word ' * 8000}]  # 8000 tokens
+
+    prompt = qf.add_history_to_prompt(history)
+    tokenized = tokenizer.encode(prompt)
+    assert len(tokenized) < 4096
+
+
