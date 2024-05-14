@@ -24,7 +24,6 @@ class ChatHistory:
         ret = ChatHistory()
 
         look_back = min(math.ceil(max_history / 2), len(ctx))
-        print(look_back)
         for [msg, rsp] in ctx[-look_back:]:
             if msg is not None:
                 ret.add_message('user', msg)
