@@ -133,4 +133,4 @@ class GradioGUI:
 
     @staticmethod
     def _auth_fn(username, password):
-        return username == "Aszfalt" and password == "Aszfalt"
+        return username == "ELTE" and password == "ELTE"
