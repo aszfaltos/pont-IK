@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 from pathlib import Path
+import shutil
 
 
 class GradioGUI:
@@ -81,9 +82,7 @@ class GradioGUI:
         """
         Defines the gradio GUI and launches the FastAPI server.
         """
-        app = FastAPI()
-        static_dir = Path('./data')
-        app.mount("/static", StaticFiles(directory=static_dir), name="static")
+        gr.set_static_paths(paths=['data', 'data/elte_ik'])
 
         inject_js = """async () => {
                            setTimeout(() => {
@@ -121,7 +120,7 @@ class GradioGUI:
                         retry = gr.Button(value='Újra')
                         _ = gr.ClearButton([msg, chatbot], variant='stop', value='Törlés')
                 with gr.Column() as _:
-                    _ = gr.HTML('<embed height="800" width="700" id="doc" src="/static/placeholder.pdf"></embed>',
+                    _ = gr.HTML('<embed height="800" width="700" id="doc" src="file=data/placeholder.pdf"></embed>',
                                 label='document')
 
             undo.click(self.undo_click, [chatbot], [chatbot])
@@ -130,5 +129,8 @@ class GradioGUI:
                        self.bot_submit, chatbot, chatbot).then(
                        None, None, None, js=inject_js)
 
-        app = gr.mount_gradio_app(app, block, path="/")
-        uvicorn.run(app, host="0.0.0.0", port=7860)
+        block.launch(share=True, auth=GradioGUI._auth_fn)
+
+    @staticmethod
+    def _auth_fn(username, password):
+        return username == "Aszfalt" and password == "Aszfalt"

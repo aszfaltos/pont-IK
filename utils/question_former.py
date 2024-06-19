@@ -75,7 +75,7 @@ class QuestionFormer:
         history_str = return_char.join([QuestionFormer._message_to_string(message) for message in history])
         if len(self.encoding.encode(history_str)) > 2000:
             # 2000 characters won't be longer than 2000 tokens, but should be enough for generation.
-            history_str = history_str[:2000]
+            history_str = history_str[2000:]
         return (self.prompt +
                 f'{self.sections["history"]}:\n' +
                 f'{history_str}\n' +
